@@ -28,21 +28,21 @@ under the License.
 {:toc}
 
 ## Levels of Abstraction
+## 抽象层次
 
 Flink offers different levels of abstraction to develop streaming/batch applications.
+Flink对开发流式（Streaming）和批处理（batch）程序提供了不同的抽象层次。
 
 <img src="../fig/levels_of_abstraction.svg" alt="Programming levels of abstraction" class="offset" width="80%" />
 
-  - The lowest level abstraction simply offers **stateful streaming**. It is embedded into the [DataStream API](../dev/datastream_api.html)
-    via the [Process Function](../dev/stream/operators/process_function.html). It allows users freely process events from one or more streams,
-    and use consistent fault tolerant *state*. In addition, users can register event time and processing time callbacks,
-    allowing programs to realize sophisticated computations.
+  - 最低层的抽象只是提供 **状态流(stateful streaming)**。它被整合到[DataStream API](../dev/datastream_api.html)中。
+    通过[处理函数(Process Function)](../dev/stream/operators/process_function.html)。它允许用户自由得处理一个或多个流事件，
+    同时能使用一致的容错*状态*。此外,用户能通过注册事件时间(event time)和处理时间(processing time)来回调，
+    允许程序来实现复杂的计算。
 
-  - In practice, most applications would not need the above described low level abstraction, but would instead program against the
-    **Core APIs** like the [DataStream API](../dev/datastream_api.html) (bounded/unbounded streams) and the [DataSet API](../dev/batch/index.html)
-    (bounded data sets). These fluent APIs offer the common building blocks for data processing, like various forms of user-specified
-    transformations, joins, aggregations, windows, state, etc. Data types processed in these APIs are represented as classes
-    in the respective programming languages.
+  - 在实践中，大部分程序不会用到上述的低层次抽象，但相对的会去使用
+  
+  - **core APIs** 比如[DataStream API](../dev/datastream_api.html)(有界/无界流)和[DataSet API](../dev/batch/index.html)(有界数据集)。在数据处理过程中，这些流畅的API提供通用的建立基础模块的功能，比如用户指定的各种表单转换(transformations)操作，联合(joins)操作，aggregations, windows, state等等。这些API对数据类型进行处理的过程中，这些数据类型被表示成各自程序语言中的类。
 
     The low level *Process Function* integrates with the *DataStream API*, making it possible to go the lower level abstraction 
     for certain operations only. The *DataSet API* offers additional primitives on bounded data sets, like loops/iterations.
