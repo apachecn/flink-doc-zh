@@ -28,16 +28,13 @@ under the License.
 * toc
 {:toc}
 
-## Predefined Sources and Sinks
+## 预定义Sources和Sioks
 
-A few basic data sources and sinks are built into Flink and are always available.
-The [predefined data sources]({{ site.baseurl }}/dev/datastream_api.html#data-sources) include reading from files, directories, and sockets, and
-ingesting data from collections and iterators.
-The [predefined data sinks]({{ site.baseurl }}/dev/datastream_api.html#data-sinks) support writing to files, to stdout and stderr, and to sockets.
+Flink内置了一些基本的数据Sources和Sink，并且始终可用。在[predefined data sources]({{ site.baseurl }}/dev/datastream_api.html#data-sources)中包含了如何从文件，目录，套接字，以及从集合和迭代器中提取数据的内容。在[predefined data sinks]({{ site.baseurl }}/dev/datastream_api.html#data-sinks)中有写（writing）文件，写标准输出，写标准错误和写套接字的内容。
 
-## Bundled Connectors
+## 捆绑（Bundled）连接器
 
-Connectors provide code for interfacing with various third-party systems. Currently these systems are supported:
+连接器提供了与各种第三方系统接口的代码。当前支持的系统如下：
 
  * [Apache Kafka](kafka.html) (source/sink)
  * [Apache Cassandra](cassandra.html) (sink)
@@ -48,15 +45,11 @@ Connectors provide code for interfacing with various third-party systems. Curren
  * [Apache NiFi](nifi.html) (source/sink)
  * [Twitter Streaming API](twitter.html) (source)
 
-Keep in mind that to use one of these connectors in an application, additional third party
-components are usually required, e.g. servers for the data stores or message queues.
-Note also that while the streaming connectors listed in this section are part of the
-Flink project and are included in source releases, they are not included in the binary distributions. 
-Further instructions can be found in the corresponding subsections.
+记住，要在应用程序中使用其中一个连接器，通常需要额外的第三方组件。比如，存储服务以及消息队列。还注意的是，虽然本节中列出的流连接器是Flink项目中的一部分并包含在源代码版本里，但它们不包含在二进制发行版中。
 
-## Connectors in Apache Bahir
+## Apache Bahir中的连接器
 
-Additional streaming connectors for Flink are being released through [Apache Bahir](https://bahir.apache.org/), including:
+在Flink中，额外的流连接器是通过[Apache Bahir](https://bahir.apache.org/)发布的。包括：
 
  * [Apache ActiveMQ](https://bahir.apache.org/docs/flink/current/flink-streaming-activemq/) (source/sink)
  * [Apache Flume](https://bahir.apache.org/docs/flink/current/flink-streaming-flume/) (sink)
@@ -64,21 +57,15 @@ Additional streaming connectors for Flink are being released through [Apache Bah
  * [Akka](https://bahir.apache.org/docs/flink/current/flink-streaming-akka/) (sink)
  * [Netty](https://bahir.apache.org/docs/flink/current/flink-streaming-netty/) (source)
 
-## Other Ways to Connect to Flink
+## 其他链接到Flink的方式
 
-### Data Enrichment via Async I/O
+### 通过异步实现数据浓缩（Data Enrichment）
 
-Using a connector isn't the only way to get data in and out of Flink.
-One common pattern is to query an external database or web service in a `Map` or `FlatMap`
-in order to enrich the primary datastream.
-Flink offers an API for [Asynchronous I/O]({{ site.baseurl }}/dev/stream/operators/asyncio.html)
-to make it easier to do this kind of enrichment efficiently and robustly.
+使用连接器不是使数据进出Flink的唯一方式。一个通用的模式是在一个`Map`或`FlatMap`中查询一个外部数据库或者是web服务从而实现数据浓缩。
+Flink为[Asynchronous I/O]({{ site.baseurl }}/dev/stream/operators/asyncio.html)提供API来使这些数据浓缩（enrichment）的操作更加方便和更加稳健。
 
-### Queryable State
+### 可查询的状态
 
-When a Flink application pushes a lot of data to an external data store, this
-can become an I/O bottleneck.
-If the data involved has many fewer reads than writes, a better approach can be
-for an external application to pull from Flink the data it needs.
-The [Queryable State]({{ site.baseurl }}/dev/stream/state/queryable_state.html) interface
-enables this by allowing the state being managed by Flink to be queried on demand.
+当一个Flink程序将大量数据推送到其他外部的存储地方时，这时I/O可能会成为瓶颈。
+如果涉及的数据读取次数少于写入次数，则可采用更好的途径使得外部应用程序能从Flink提取所需的数据。
+在[Queryable State]({{ site.baseurl }}/dev/stream/state/queryable_state.html)接口通过允许由Flink管理的状态按需查询来实现这一点。
