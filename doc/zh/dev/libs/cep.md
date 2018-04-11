@@ -1,6 +1,6 @@
 ---
-title: "FlinkCEP - Complex event processing for Flink"
-nav-title: Event Processing (CEP)
+title: "FlinkCEP - Flink 中的复杂事件处理"
+nav-title: 事件处理（CEP）
 nav-parent_id: libs
 nav-pos: 1
 ---
@@ -23,23 +23,19 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-FlinkCEP is the Complex Event Processing (CEP) library implemented on top of Flink.
-It allows you to detect event patterns in an endless stream of events, giving you the opportunity to get hold of what's important in your
-data.
+FlinkCEP 是在 Flink 之上所实现的 CEP（复杂事件处理）库。
+它可以让你在不断的事件流中检测事件模式，模式匹配之后，就可以处理数据中的重要信息。
 
-This page describes the API calls available in Flink CEP. We start by presenting the [Pattern API](#the-pattern-api),
-which allows you to specify the patterns that you want to detect in your stream, before presenting how you can
-[detect and act upon matching event sequences](#detecting-patterns). We then present the assumptions the CEP
-library makes when [dealing with lateness](#handling-lateness-in-event-time) in event time and how you can
-[migrate your job](#migrating-from-an-older-flink-version) from an older Flink version to Flink-1.3.
+本页面描述了 Flin CEP 中可用的 API 调用。
+我们首先介绍 [Pattern API](#the-pattern-api)，它可以让你在流中使用自己的方式来检测想要的模式，在介绍它之前，我们可以先了解一下 [对匹配的事件序列进行检测和操作](#detecting-patterns).
+然后，我们介绍 CEP 库在事件时间内的 [延迟处理](#handling-lateness-in-event-time) 所做的假设，以及如何从老的 Flink 版本 [迁移任务](#migrating-from-an-older-flink-version) 到 Flink-1.3 版本。
 
 * This will be replaced by the TOC
 {:toc}
 
-## Getting Started
+## 入门指南
 
-If you want to jump right in, [set up a Flink program]({{ site.baseurl }}/dev/linking_with_flink.html) and
-add the FlinkCEP dependency to the `pom.xml` of your project.
+如果你想快速入门，[设置 Flink 程序]({{ site.baseurl }}/dev/linking_with_flink.html)，以及添加 FlinkCEP 依赖到你项目的 `pom.xml` 文件中去。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -63,13 +59,11 @@ add the FlinkCEP dependency to the `pom.xml` of your project.
 </div>
 </div>
 
-{% info %} FlinkCEP is not part of the binary distribution. See how to link with it for cluster execution [here]({{site.baseurl}}/dev/linking.html).
+{% info %} FlinkCEP 不是二进制发行版中的一部分. 请参阅 [这里]({{site.baseurl}}/dev/linking.html) 了解如何将它与 cluster execution 相关联起来.
 
-Now you can start writing your first CEP program using the Pattern API.
+现在你可以开始使用 Pattern API 来编写第一个 CEP 程序啦。
 
-{% warn Attention %} The events in the `DataStream` to which
-you want to apply pattern matching must implement proper `equals()` and `hashCode()` methods
-because FlinkCEP uses them for comparing and matching events.
+你想要去应用模式匹配的 `DataStream` 中的事件必须实现正确的 `equals()` 和 `hashCode()` 方法，因为 FlinkCEP 使用它们来比较和匹配事件。 
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
