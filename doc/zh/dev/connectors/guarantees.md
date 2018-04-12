@@ -1,7 +1,7 @@
 ---
-title: "Fault Tolerance Guarantees of Data Sources and Sinks"
-nav-title: Fault Tolerance Guarantees
-nav-parent_id: connectors
+title: "对数据的Sources和Sinks的容错保证"
+nav-title: 容错保证
+nav-parent_id: 连接器
 nav-pos: 0
 ---
 <!--
@@ -23,118 +23,113 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-Flink's fault tolerance mechanism recovers programs in the presence of failures and
-continues to execute them. Such failures include machine hardware failures, network failures,
-transient program failures, etc.
+Flink的容错机制能够使程序从错误中恢复并继续执行。这里的错误包括机器硬件错误，网络错误和短暂的程序错误等等。
 
-Flink can guarantee exactly-once state updates to user-defined state only when the source participates in the
-snapshotting mechanism. The following table lists the state update guarantees of Flink coupled with the bundled connectors.
+只有当source参与到快照机制时，Flink才能保证恰好一次就将状态更新到瀛湖定义的状态。下表列出了Flink与捆绑连接器（bundled connectors）的状态更新保证。
 
-Please read the documentation of each connector to understand the details of the fault tolerance guarantees.
+请阅读每个连接器的文档以了解容错保证的详细信息。
 
 <table class="table table-bordered">
   <thead>
     <tr>
       <th class="text-left" style="width: 25%">Source</th>
-      <th class="text-left" style="width: 25%">Guarantees</th>
-      <th class="text-left">Notes</th>
+      <th class="text-left" style="width: 25%">保证（Guarantees）</th>
+      <th class="text-left">备注</th>
     </tr>
    </thead>
    <tbody>
         <tr>
             <td>Apache Kafka</td>
-            <td>exactly once</td>
-            <td>Use the appropriate Kafka connector for your version</td>
+            <td>恰好一次</td>
+            <td>为您的版本使用适当的Kafka连接器</td>
         </tr>
         <tr>
             <td>AWS Kinesis Streams</td>
-            <td>exactly once</td>
+            <td>恰好一次</td>
             <td></td>
         </tr>
         <tr>
             <td>RabbitMQ</td>
-            <td>at most once (v 0.10) / exactly once (v 1.0) </td>
+            <td>at 最多一次 (v 0.10) / 恰好一次 (v 1.0) </td>
             <td></td>
         </tr>
         <tr>
             <td>Twitter Streaming API</td>
-            <td>at most once</td>
+            <td>最多一次</td>
             <td></td>
         </tr>
         <tr>
             <td>Collections</td>
-            <td>exactly once</td>
+            <td>恰好一次</td>
             <td></td>
         </tr>
         <tr>
             <td>Files</td>
-            <td>exactly once</td>
+            <td>恰好一次</td>
             <td></td>
         </tr>
         <tr>
             <td>Sockets</td>
-            <td>at most once</td>
+            <td>最多一次</td>
             <td></td>
         </tr>
   </tbody>
 </table>
 
-To guarantee end-to-end exactly-once record delivery (in addition to exactly-once state semantics), the data sink needs
-to take part in the checkpointing mechanism. The following table lists the delivery guarantees (assuming exactly-once
-state updates) of Flink coupled with bundled sinks:
+为了保证端到端恰好一次的记录交付，数据sink需要参与到检查点（checkpointing）机制中。下表列出了Flink与捆绑式接收器的交付保证（假设只有一次状态更新）：	
 
 <table class="table table-bordered">
   <thead>
     <tr>
       <th class="text-left" style="width: 25%">Sink</th>
-      <th class="text-left" style="width: 25%">Guarantees</th>
-      <th class="text-left">Notes</th>
+      <th class="text-left" style="width: 25%">保证</th>
+      <th class="text-left">备注</th>
     </tr>
   </thead>
   <tbody>
     <tr>
         <td>HDFS rolling sink</td>
-        <td>exactly once</td>
-        <td>Implementation depends on Hadoop version</td>
+        <td>恰好一次</td>
+        <td>取决于Hadoop版本实现</td>
     </tr>
     <tr>
         <td>Elasticsearch</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
     <tr>
         <td>Kafka producer</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
     <tr>
         <td>Cassandra sink</td>
-        <td>at least once / exactly once</td>
-        <td>exactly once only for idempotent updates</td>
+        <td>至少一次 / 恰好一次</td>
+        <td>只有当idempotent updates才时恰好一次</td>
     </tr>
     <tr>
         <td>AWS Kinesis Streams</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
     <tr>
         <td>File sinks</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
     <tr>
         <td>Socket sinks</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
     <tr>
         <td>Standard output</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
     <tr>
         <td>Redis sink</td>
-        <td>at least once</td>
+        <td>至少一次</td>
         <td></td>
     </tr>
   </tbody>

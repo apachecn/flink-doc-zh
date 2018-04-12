@@ -1,9 +1,9 @@
 ---
-title: Dataflow Programming Model
-nav-id: programming-model
+title: 数据流程序模型
+nav-id: 程序模型
 nav-pos: 1
-nav-title: Programming Model
-nav-parent_id: concepts
+nav-title: 程序模型
+nav-parent_id: 概念
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -27,10 +27,8 @@ under the License.
 * This will be replaced by the TOC
 {:toc}
 
-## Levels of Abstraction
 ## 抽象层次
 
-Flink offers different levels of abstraction to develop streaming/batch applications.
 Flink对开发流式（Streaming）和批处理（batch）程序提供了不同的抽象层次。
 
 <img src="../fig/levels_of_abstraction.svg" alt="Programming levels of abstraction" class="offset" width="80%" />
@@ -40,11 +38,11 @@ Flink对开发流式（Streaming）和批处理（batch）程序提供了不同�
     同时能使用一致的容错*状态*。此外,用户能通过注册事件时间(event time)和处理时间(processing time)来回调，
     允许程序来实现复杂的计算。
 
-  - 在实践中，大部分程序不会用到上述的低层次抽象，但相对的会去使用
+  - 在实践中，大部分程序不会用到上述的低层次抽象，但相对的会去使用：
   
   - **core APIs** 比如[DataStream API](../dev/datastream_api.html)(有界/无界流)和[DataSet API](../dev/batch/index.html)(有界数据集)。在数据处理过程中，这些流畅的API提供通用的建立基础模块的功能，比如用户指定的各种表单转换(transformations)操作，联合(joins)操作，aggregations, windows, state等等。这些API对数据类型进行处理的过程中，这些数据类型被表示成各自程序语言中的类。
 
-    低层次的*Process Function*整合了*DataStream API*，但只有再某些核心操作中才有可能进行较低级别的抽象。*DataSet API*为有界数据集提供了额外的语法，如loop/iterations。
+    低层次的*处理方法（Process Function）*整合了*DataStream API*，但只有再某些核心操作中才有可能进行较低级别的抽象。*DataSet API*为有界数据集提供了额外的语法，如loop/iterations。
 
     **Table API**是一个围绕着*tables*为中心的的声明式的DSL，并且式是可动态改变的tables（当表示数据流的时候）。
     [Table API](../dev/table_api.html) 遵循（或者说扩展）着关系模型：Tables有一个附属的schema（如关系数据库中的tables）。
@@ -60,7 +58,7 @@ Flink对开发流式（Streaming）和批处理（batch）程序提供了不同�
 
 ## 程序和数据流
 
-对Flink来说，基本building blocks是**streams**和**transformations**（注意在Flink中，虽然DataSets使用的是DataSet API，但其内部依然是通过streams实现的，更多方面稍后会介绍）。从概念上讲，*stream*是一个data records的流（可能持续不断），以及*transformation*是一个将一个或多个streams当作输入，产生一个或多个输出streams结果的操作。
+对Flink来说，基本的building blocks是**streams**和**transformations**的（注意在Flink中，虽然DataSets使用的是DataSet API，但其内部依然是通过streams实现的，更多方面稍后会介绍）。从概念上讲，*stream*是一个data records的流（可能持续不断），以及*transformation*是一个将一个或多个streams当作输入，产生一个或多个输出streams结果的操作。
 
 在执行的时候，Flink程序被映射成**streaming dataflows**，由**streams**和转换**操作**（transformation **operators**）；
 每一个dataflow都是以一个或多个的**sources**开始，并且以一个或多个的**sinks**结束（译者：这点和kafka connect相似）。dataflows类似于的**有向无环图（directed acyclic graphs）** *(DAGs)*。虽然这种特殊的循环能够通过*iteration*初始化，但大多数情况下，我们会简单说明这点。
@@ -125,7 +123,7 @@ Sources和sinks的具体记录在[streaming connectors](../dev/connectors/index.
 
 ## 状态操作
 
-许多数据流（dataflow）的运算只需要管理好自己*此次事件*（比如事件解析器），一些运算会记得多个事件的信息（比如窗口操作）。这些运算被称之为**stateful**。
+许多数据流（dataflow）的运算只需要管理好自己*当次事件*（比如事件解析器），一些运算会记得多个事件的信息（比如窗口操作）。这些运算被称之为**stateful**。
 
 状态操作的状态保存在可以将它视为键值对保存的地方存储着。
 这些状态被严格得与通过与由状态操作读取的stream一起被分区和分割。于是，要访问key/value的状态只可能在调用*keyBy()*方法之后，通过*keyed streams*实现，同时它被限制于它的值于当前事件的key关联着。对齐流和状态的key可确保所有状态更新都是本地操作，可以保证一致性而无需事务开销。此对齐还允许Flink重新分配状态并透明地调整流分区。

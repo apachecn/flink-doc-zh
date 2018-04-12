@@ -1,8 +1,8 @@
 ---
-title: "Streaming Connectors"
-nav-id: connectors
-nav-title: Connectors
-nav-parent_id: streaming
+title: "流式连接器"
+nav-id: 连接器
+nav-title: 连接器
+nav-parent_id: 流式
 nav-pos: 30
 nav-show_overview: true
 ---

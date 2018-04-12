@@ -1,8 +1,8 @@
 ---
-title: Distributed Runtime Environment
+title: 分布式运行环境
 nav-pos: 2
-nav-title: Distributed Runtime
-nav-parent_id: concepts
+nav-title: 分布式运行
+nav-parent_id: 概念
 ---
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -102,7 +102,6 @@ TaskManagers连接到JobManager，通知说自己可用，并分配工作。
 
 [保存点（Savepoints）](../ops/state/savepoints.html)是**手动触发的检查点（manually triggered checkpoint）**,会保存一个程序快照（snapshot ）并写入到状态后端中。它其实是依赖于常规的（checkpointing ）机制来实现的。在执行任务期间定期得在worker node上产生快照并产生检查点。要恢复的话其实只是需要最后一个完整的检查点，故而一旦一个写您的检查点完成，那么旧的就会被安全得删除。
 
-Savepoints are similar to these periodic checkpoints except that they are **triggered by the user** and **don't automatically expire** when newer checkpoints are completed. Savepoints can be created from the [command line](../ops/cli.html#savepoints) or when cancelling a job via the [REST API](../monitoring/rest_api.html#cancel-job-with-savepoint).
 
 保存点其实类似于定期的检查点，只是它**由用户触发**并且当一个新的检查点完成时它**不会自动到期（expire）**。保存点能够从[命令行](../ops/cli.html#savepoints)创建或者当一个作业（job）从[rest api](../monitoring/rest_api.html#cancel-job-with-savepoint)中被取消。
 

@@ -26,25 +26,21 @@ under the License.
 * This will be replaced by the TOC
 {:toc}
 
-This connector provides access to event streams served by [Apache Kafka](https://kafka.apache.org/).
+这个连接器提供通过[Apache Kafka](https://kafka.apache.org/)进入事件流的服务。
 
-Flink provides special Kafka Connectors for reading and writing data from/to Kafka topics.
-The Flink Kafka Consumer integrates with Flink's checkpointing mechanism to provide
-exactly-once processing semantics. To achieve that, Flink does not purely rely on Kafka's consumer group
-offset tracking, but tracks and checkpoints these offsets internally as well.
+Flink为kafka专门提供了一个连接器用来向kafka的topics发送和写入数据。Flink kafka的消费者整合Flink的检查点机制以提供恰好一次（exactly-once）的处理语义。为了达到这个目标，Flink并不完全依赖卡夫卡的消费群体偏移量跟踪，而是也会在内部跟踪和检查这些偏移量。
 
-Please pick a package (maven artifact id) and class name for your use-case and environment.
-For most users, the `FlinkKafkaConsumer08` (part of `flink-connector-kafka`) is appropriate.
+请针对您的用例和环境的选择一个包（maven artifact id）和类名。对大多数用户来说`FlinkKafkaConsumer08`（`flink-connector-kafka`的一部分）时比较合适的。
 
 <table class="table table-bordered">
   <thead>
     <tr>
-      <th class="text-left">Maven Dependency</th>
-      <th class="text-left">Supported since</th>
-      <th class="text-left">Consumer and <br>
-      Producer Class name</th>
-      <th class="text-left">Kafka version</th>
-      <th class="text-left">Notes</th>
+      <th class="text-left">Maven依赖</th>
+      <th class="text-left">支持版本</th>
+      <th class="text-left">消费者和<br>
+      生产者类名</th>
+      <th class="text-left">kafka版本</th>
+      <th class="text-left">备注</th>
     </tr>
   </thead>
   <tbody>
@@ -54,7 +50,7 @@ For most users, the `FlinkKafkaConsumer08` (part of `flink-connector-kafka`) is 
         <td>FlinkKafkaConsumer08<br>
         FlinkKafkaProducer08</td>
         <td>0.8.x</td>
-        <td>Uses the <a href="https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example">SimpleConsumer</a> API of Kafka internally. Offsets are committed to ZK by Flink.</td>
+        <td>使用kafka内部的 <a href="https://cwiki.apache.org/confluence/display/KAFKA/0.8.0+SimpleConsumer+Example">SimpleConsumer</a> API。 Offsets 通过Flink提交到ZK（zookeeper）</td>
     </tr>
     <tr>
         <td>flink-connector-kafka-0.9{{ site.scala_version_suffix }}</td>
@@ -62,7 +58,7 @@ For most users, the `FlinkKafkaConsumer08` (part of `flink-connector-kafka`) is 
         <td>FlinkKafkaConsumer09<br>
         FlinkKafkaProducer09</td>
         <td>0.9.x</td>
-        <td>Uses the new <a href="http://kafka.apache.org/documentation.html#newconsumerapi">Consumer API</a> Kafka.</td>
+        <td>使用新的kafkd <a href="http://kafka.apache.org/documentation.html#newconsumerapi">Consumer API</a> 。</td>
     </tr>
     <tr>
         <td>flink-connector-kafka-0.10{{ site.scala_version_suffix }}</td>
@@ -70,7 +66,7 @@ For most users, the `FlinkKafkaConsumer08` (part of `flink-connector-kafka`) is 
         <td>FlinkKafkaConsumer010<br>
         FlinkKafkaProducer010</td>
         <td>0.10.x</td>
-        <td>This connector supports <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-32+-+Add+timestamps+to+Kafka+message">Kafka messages with timestamps</a> both for producing and consuming.</td>
+        <td>这个连接器支持 <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-32+-+Add+timestamps+to+Kafka+message">有时间戳的kafka message</a>，无论是producing还是consuming。</td>
     </tr>
     <tr>
         <td>flink-connector-kafka-0.11_2.11</td>
@@ -78,7 +74,7 @@ For most users, the `FlinkKafkaConsumer08` (part of `flink-connector-kafka`) is 
         <td>FlinkKafkaConsumer011<br>
         FlinkKafkaProducer011</td>
         <td>0.11.x</td>
-        <td>Since 0.11.x Kafka does not support scala 2.10. This connector supports <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging">Kafka transactional messaging</a> to provide exactly once semantic for the producer.</td>
+        <td>0.11.x版本的Kafka不支持scala 2.10.这个连接器支持 <a href="https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging">传统的Kafka messaging</a>用以对producer提供“恰好一次”的语义（semantic）。</td>
     </tr>
   </tbody>
 </table>
