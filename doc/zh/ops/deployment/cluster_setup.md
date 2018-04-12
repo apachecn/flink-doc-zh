@@ -51,7 +51,7 @@ Flink需要在master节点和所有worker节点上设置`JAVA_HOME`环境变量�
 
 ## Flink安装
 
-转到[下载页面]({{ site.download_url }}) 并获取准备运行的软件包。确保选择与您的**Hadoop版本**匹配的Flink软件包。如果您不打算使用任何hadoop版本，可以选择任意版本的Flink软件包。.
+转到[下载页面](http://flink.apache.org/downloads.html) 并获取准备运行的软件包。确保选择与您的**Hadoop版本**匹配的Flink软件包。如果您不打算使用任何hadoop版本，可以选择任意版本的Flink软件包。.
 
 下载最新版本压缩包后，将其复制到您的主节点并解压：
 
@@ -74,7 +74,7 @@ cd flink-*
 
 <div class="row">
   <div class="col-md-6 text-center">
-    <img src="{{ site.baseurl }}/page/img/quickstart_cluster.png" style="width: 60%">
+    <img src="http://doc.flink-china.org/1.2.0/page/img/quickstart_cluster.png" style="width: 60%">
   </div>
 <div class="col-md-6">
   <div class="row">
