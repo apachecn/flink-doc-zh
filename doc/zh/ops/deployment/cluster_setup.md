@@ -22,61 +22,55 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-This page provides instructions on how to run Flink in a *fully distributed fashion* on a *static* (but possibly heterogeneous) cluster.
-
+本章介绍了如何在静态（但可能是异构）集群上以*完全分布式*的方式运行Flink。
 * This will be replaced by the TOC
 {:toc}
 
-## Requirements
+## 需求
 
-### Software Requirements
+### 软件需求
 
-Flink runs on all *UNIX-like environments*, e.g. **Linux**, **Mac OS X**, and **Cygwin** (for Windows) and expects the cluster to consist of **one master node** and **one or more worker nodes**. Before you start to setup the system, make sure you have the following software installed **on each node**:
+Flink可以在所有*类UNIX环境*中运行，例如：**Linux**,**Mac OS X**和**Cygwin**(适用于Windows)，并且集群由**一个master节点**和**一个或多个worker节点**组成。在开始设置系统前，请确保一下软件已经安装到了**每一个节点**上:
+- **Java 1.8.x** 或更高版本，
+- **ssh** (为了确保Flink远程管理组件脚本可以使用，必须先运行ssh命令)
 
-- **Java 1.8.x** or higher,
-- **ssh** (sshd must be running to use the Flink scripts that manage
-  remote components)
+如果您的集群不满足这些软件需求，请先安装或升级对应软件。
 
-If your cluster does not fulfill these software requirements you will need to install/upgrade it.
-
-Having __passwordless SSH__ and
-__the same directory structure__ on all your cluster nodes will allow you to use our scripts to control
-everything.
+在所有集群节点上拥有 __无密码SSH__ 和
+__相同的目录结构__ 将允许您使用我们的脚本控制所有内容。
 
 {% top %}
 
-### `JAVA_HOME` Configuration
+### `JAVA_HOME` 配置
 
-Flink requires the `JAVA_HOME` environment variable to be set on the master and all worker nodes and point to the directory of your Java installation.
+Flink需要在master节点和所有worker节点上设置`JAVA_HOME`环境变量，并指向Java安装目录。
 
-You can set this variable in `conf/flink-conf.yaml` via the `env.java.home` key.
+你可以通过设置`conf/flink-conf.yaml`配置文件中的`env.java.home`变量指定该值。
 
 {% top %}
 
-## Flink Setup
+## Flink安装
 
-Go to the [downloads page]({{ site.download_url }}) and get the ready-to-run package. Make sure to pick the Flink package **matching your Hadoop version**. If you don't plan to use Hadoop, pick any version.
+转到[下载页面]({{ site.download_url }}) 并获取准备运行的软件包。确保选择与您的**Hadoop版本**匹配的Flink软件包。如果您不打算使用任何hadoop版本，可以选择任意版本的Flink软件包。.
 
-After downloading the latest release, copy the archive to your master node and extract it:
+下载最新版本压缩包后，将其复制到您的主节点并解压：
 
 ~~~bash
 tar xzf flink-*.tgz
 cd flink-*
 ~~~
 
-### Configuring Flink
+### 配置Flink
 
-After having extracted the system files, you need to configure Flink for the cluster by editing *conf/flink-conf.yaml*.
+在提取系统文件后，您需要通过编辑*conf/flink-conf.yaml*来为集群配置Flink。
 
-Set the `jobmanager.rpc.address` key to point to your master node. You should also define the maximum amount of main memory the JVM is allowed to allocate on each node by setting the `jobmanager.heap.mb` and `taskmanager.heap.mb` keys.
+通过设置`jobmanager.rpc.address`来指定master节点。您还应该通过设置`jobmanager.heap.mb`和`taskmanager.heap.mb`来定义每个节点上JVM允许分配的主内存的最大值。
 
-These values are given in MB. If some worker nodes have more main memory which you want to allocate to the Flink system you can overwrite the default value by setting the environment variable `FLINK_TM_HEAP` on those specific nodes.
+这些值的单位为MB。如果某些worker节点有更多的要分配给Flink系统的主内存，您可以通过该节点的`FLINK_TM_HEAP`环境变量来覆盖默认值。
 
-Finally, you must provide a list of all nodes in your cluster which shall be used as worker nodes. Therefore, similar to the HDFS configuration, edit the file *conf/slaves* and enter the IP/host name of each worker node. Each worker node will later run a TaskManager.
+最后，您必须提供群集中作为worker节点的节点列表。类似于HDFS配置，编辑*conf/slaves*文件并输入每个worker节点的IP/主机名。每个工作节点稍后将运行一个TaskManager。
 
-The following example illustrates the setup with three nodes (with IP addresses from _10.0.0.1_
-to _10.0.0.3_ and hostnames _master_, _worker1_, _worker2_) and shows the contents of the
-configuration files (which need to be accessible at the same path on all machines):
+下面以三个节点的集群为例说明（IP地址从 _10.0.0.1_ 到 _10.0.0.3_ 和主机名 _master_ ， _worker1_ ， _worker2_ ）配置文件的内容（配置文件在所有机器上的相同路径下）：
 
 <div class="row">
   <div class="col-md-6 text-center">
@@ -100,52 +94,53 @@ configuration files (which need to be accessible at the same path on all machine
 </div>
 </div>
 
-The Flink directory must be available on every worker under the same path. You can use a shared NFS directory, or copy the entire Flink directory to every worker node.
+在每一个worker节点的相同路径下的Flink目录必须都是可用的。您可以使用共享NFS目录，或者将Flink目录复制到每一个worker节点。
 
-Please see the [configuration page](../config.html) for details and additional configuration options.
+有关详细信息和其他配置选项，请参阅[configuration page](../config.html) 。
 
-In particular,
+特别是,
 
- * the amount of available memory per JobManager (`jobmanager.heap.mb`),
- * the amount of available memory per TaskManager (`taskmanager.heap.mb`),
- * the number of available CPUs per machine (`taskmanager.numberOfTaskSlots`),
- * the total number of CPUs in the cluster (`parallelism.default`) and
- * the temporary directories (`taskmanager.tmp.dirs`)
+ * 每个JobManager (`jobmanager.heap.mb`)的可用内存量，
+ * 每个TaskManager (`taskmanager.heap.mb`)的可用内存量，
+ * 每台机器(`taskmanager.numberOfTaskSlots`)的可用CPU数据，
+ * 集群中CPU的总数 (`parallelism.default`) 
+ * 临时目录(`taskmanager.tmp.dirs`)
 
-are very important configuration values.
+是非常重要的配置。
 
 {% top %}
 
-### Starting Flink
+### 启动Flink
 
-The following script starts a JobManager on the local node and connects via SSH to all worker nodes listed in the *slaves* file to start the TaskManager on each node. Now your Flink system is up and running. The JobManager running on the local node will now accept jobs at the configured RPC port.
+以下脚本在本地节点上启动JobManager并通过SSH连接到*slaves*文件中列出的所有worker节点，以便在每个worker节点上启动TaskManager。现在你的Flink系统已经启动并正在运行。本地节点上运行的JobManager将通过配置的RPC端口接收任务。
 
-Assuming that you are on the master node and inside the Flink directory:
+假设您位于主节点上并位于Flink目录中：
 
 ~~~bash
 bin/start-cluster.sh
 ~~~
 
-To stop Flink, there is also a `stop-cluster.sh` script.
+可以通过 `stop-cluster.sh`脚本关闭Flink。
 
 {% top %}
 
-### Adding JobManager/TaskManager Instances to a Cluster
+### 为集群添加JobManager/TaskManager实例
 
 You can add both JobManager and TaskManager instances to your running cluster with the `bin/jobmanager.sh` and `bin/taskmanager.sh` scripts.
+您可以使用`bin/jobmanager.sh`和`bin/taskmanager.sh`脚本将JobManager和TaskManager实例添加到正在运行的群集中。
 
-#### Adding a JobManager
+#### 添加JobManager
 
 ~~~bash
 bin/jobmanager.sh ((start|start-foreground) cluster)|stop|stop-all
 ~~~
 
-#### Adding a TaskManager
+#### 添加TaskManager
 
 ~~~bash
 bin/taskmanager.sh start|start-foreground|stop|stop-all
 ~~~
 
-Make sure to call these scripts on the hosts on which you want to start/stop the respective instance.
+确保在要启动/停止相应实例的主机上调用这些脚本。
 
 {% top %}
