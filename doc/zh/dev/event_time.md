@@ -27,60 +27,46 @@ under the License.
 * toc
 {:toc}
 
-# Event Time / Processing Time / Ingestion Time
+# 事件时间 / 处理时间 / 摄取时间
 
-Flink supports different notions of *time* in streaming programs.
+Flink在流程序中支持不同的*时间*概念。
 
-- **Processing time:** Processing time refers to the system time of the machine that is executing the
-    respective operation.
+- **处理时间:** 处理时间是指执行算子时的机器系统时间。
 
-    When a streaming program runs on processing time, all time-based operations (like time windows) will
-    use the system clock of the machines that run the respective operator. For example, an hourly
-    processing time window will include all records that arrived at a specific operator between the
-    times when the system clock indicated the full hour.
+    当流程序以处理时间运行时, 所有基于时间的算子 (比如 time windows) 将使用运行该算子的机器系统时钟。 
+    例如，一个小时的处理时间窗口将包含在系统时钟显示整整一小时中到达指定算子的所有记录
 
-    Processing time is the simplest notion of time and requires no coordination between streams and machines.
-    It provides the best performance and the lowest latency. However, in distributed and asynchronous
-    environments processing time does not provide determinism, because it is susceptible to the speed at which
-    records arrive in the system (for example from the message queue), and to the speed at which the
-    records flow between operators inside the system.
+    处理时间是最简单的时间概念，不需要数据流和机器之间的协调。 它提供了最佳的性能和最低的延迟。
+    然而，在分布式和异步环境中，处理时间并不能提供确定性，
+    因为它容易受到记录到达系统的速度（例如来自消息队列），以及记录在系统内部算子之间的流动速度影响。
 
-- **Event time:** Event time is the time that each individual event occurred on its producing device.
-    This time is typically embedded within the records before they enter Flink and that *event timestamp*
-    can be extracted from the record. An hourly event time window will contain all records that carry an
-    event timestamp that falls into that hour, regardless of when the records arrive, and in what order
-    they arrive.
+- **事件时间:** 事件时间是每个事件在其生产设备上发生的时间。
+    这段时间通常在进入Flink之前会被嵌入到记录中,可以从这个记录中提取*时间戳*。
+    一个小时的事件时间窗口将包含落入这个小时的所有记录，无论记录是何时到达以及以何种顺序到达。
 
-    Event time gives correct results even on out-of-order events, late events, or on replays
-    of data from backups or persistent logs. In event time, the progress of time depends on the data,
-    not on any wall clocks. Event time programs must specify how to generate *Event Time Watermarks*,
-    which is the mechanism that signals progress in event time. The mechanism is
-    described below.
+    事件时间即使在事件无序，事件迟到或重放来自备份,持久性日志时也能提供正确的结果。
+    在事件时间内，时间进度取决于数据，而不在任何时钟上。
+    事件时间程序必须指定如何生成*事件时间水印*，这是事件时间的进度信号机制。 
+    机制如下面所描述。
 
-    Event time processing often incurs a certain latency, due to its nature of waiting a certain time for
-    late events and out-of-order events. Because of that, event time programs are often combined with
-    *processing time* operations.
+    由于事件延迟会等待一段时间和无序事件的存在，事件时间处理通常会产生一定的延迟。因此，
+    事件时间程序通常与*处理时间*操作相结合。
 
-- **Ingestion time:** Ingestion time is the time that events enter Flink. At the source operator each
-    record gets the source's current time as a timestamp, and time-based operations (like time windows)
-    refer to that timestamp.
+- **摄取时间:** 摄取时间是事件进入Flink的时间。在源算子中每个记录将该源的当前时间作为时间戳，基于时间的操作 (比如 time windows)则引用该时间戳。
 
-    *Ingestion time* sits conceptually in between *event time* and *processing time*. Compared to
-    *processing time*, it is slightly more expensive, but gives more predictable results. Because
-    *ingestion time* uses stable timestamps (assigned once at the source), different window operations
-    over the records will refer to the same timestamp, whereas in *processing time* each window operator
-    may assign the record to a different window (based on the local system clock and any transport delay).
+     *摄取时间* 从概念上介于*事件时间* 和 *处理时间*之间。
+    比较*处理时间*，它的代价会略高，但是会提供更多预期的结果。
+    由于*摄取时间*使用稳定的时间戳（在数据源处分配），对记录的不同窗口操作将引用相同的时间戳，
+    而在处理时间内，每个窗口算子可以将该记录分配给不同的窗口（基于本地系统时间和任何传输延时）。
 
-    Compared to *event time*, *ingestion time* programs cannot handle any out-of-order events or late data,
-    but the programs don't have to specify how to generate *watermarks*.
+    与*事件时间*相比，基于*摄入时间*的程序无法处理任何乱序事件或延迟数据，但是程序无需指定如何生成水印。
 
-    Internally, *ingestion time* is treated much like *event time*, but with automatic timestamp assignment and
-    automatic watermark generation.
+    从内部看来，摄取时间与事件时间非常相似，但是它具有自动时间戳分配和自动生成水印的功能。
 
 <img src="{{ site.baseurl }}/fig/times_clocks.svg" class="center" width="80%" />
 
 
-### Setting a Time Characteristic
+### 设置时间特征
 
 The first part of a Flink DataStream program usually sets the base *time characteristic*. That setting
 defines how data stream sources behave (for example, whether they will assign timestamps), and what notion of
