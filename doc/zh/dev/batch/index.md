@@ -25,32 +25,24 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-DataSet programs in Flink are regular programs that implement transformations on data sets
-(e.g., filtering, mapping, joining, grouping). The data sets are initially created from certain
-sources (e.g., by reading files, or from local collections). Results are returned via sinks, which may for
-example write the data to (distributed) files, or to standard output (for example the command line
-terminal). Flink programs run in a variety of contexts, standalone, or embedded in other programs.
-The execution can happen in a local JVM, or on clusters of many machines.
+Flink中的DataSet程序是实现数据集转换的常规程序 (例如： filtering, mapping, joining, grouping)。
+DataSet从某些数据源初始化(例如, 通过读取文件, 或者本地数据集合)。 结果通过 sink 返回，比如将
+文件写入（分布式）文件或写入标准输出（如命令行终端）。Flink程序可以在各种情况下运行，独立
+运行或嵌入其他程序中。执行可以发生在本地JVM或许多机器的集群中。
 
-Please see [basic concepts]({{ site.baseurl }}/dev/api_concepts.html) for an introduction
-to the basic concepts of the Flink API.
+请参阅[基本概念]（{{site.baseurl}}/dev/api_concepts.html）以了解Flink API的基本概念。
 
-In order to create your own Flink DataSet program, we encourage you to start with the
-[anatomy of a Flink Program]({{ site.baseurl }}/dev/api_concepts.html#anatomy-of-a-flink-program)
-and gradually add your own
-[transformations](#dataset-transformations). The remaining sections act as references for additional
-operations and advanced features.
+为了创建您自己的 Flink DataSet 程序, 我们鼓励您从 [Flink 程序的解刨]({{ site.baseurl }}/dev/api_concepts.html#anatomy-of-a-flink-program)开始
+并逐渐添加自己的 [transformations](#dataset-transformations)。其余部分充当其他操作和高级功能的参考。
 
 * This will be replaced by the TOC
 {:toc}
 
-Example Program
+示例程序
 ---------------
 
-The following program is a complete, working example of WordCount. You can copy &amp; paste the code
-to run it locally. You only have to include the correct Flink's library into your project
-(see Section [Linking with Flink]({{ site.baseurl }}/dev/linking_with_flink.html)) and specify the imports. Then you are ready
-to go!
+以下程序是WordCount的完整程序。您可以在本地运行， 您只需将正确的Flink的库包含到您的项目中
+(参考[Linking with Flink]({{ site.baseurl }}/dev/linking_with_flink.html))。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -115,12 +107,10 @@ object WordCount {
 DataSet Transformations
 -----------------------
 
-Data transformations transform one or more DataSets into a new DataSet. Programs can combine
-multiple transformations into sophisticated assemblies.
+Data transformations 把一个或多个 DataSet 转换成一个新的 DataSet。程序可以把多个 transformations 组合成一个复杂的程序集。
 
-This section gives a brief overview of the available transformations. The [transformations
-documentation](dataset_transformations.html) has a full description of all transformations with
-examples.
+本节将简要介绍可用的transformation。
+ [transformation 文档](dataset_transformations.html)里包含的关于所有 transformation 的完整描述。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -446,13 +436,13 @@ DataSet<Tuple2<String,Integer>> result3 = in.groupBy(0)
 
 ----------
 
-The following transformations are available on data sets of Tuples:
+以下 transformation 可用于 Tuples 的数据集：
 
 <table class="table table-bordered">
   <thead>
     <tr>
       <th class="text-left" style="width: 20%">Transformation</th>
-      <th class="text-center">Description</th>
+      <th class="text-center">描述</th>
     </tr>
   </thead>
   <tbody>
@@ -774,87 +764,73 @@ val out2: DataSet[(Int, Double, String)] = in.groupBy(2)
   </tbody>
 </table>
 
-Extraction from tuples, case classes and collections via anonymous pattern matching, like the following:
+通过匿名模式匹配从tuples，case classes和collections中提取，如下所示：
 {% highlight scala %}
 val data: DataSet[(Int, String, Double)] = // [...]
 data.map {
   case (id, name, temperature) => // [...]
 }
 {% endhighlight %}
-is not supported by the API out-of-the-box. To use this feature, you should use a <a href="{{ site.baseurl }}/dev/scala_api_extensions.html">Scala API extension</a>.
+不支持API开箱即用。要使用此功能，您应该使用<a href="{{site.baseurl }}/dev/scala_api_extensions.html"> Scala API扩展</a>。
 
 </div>
 </div>
 
-The [parallelism]({{ site.baseurl }}/dev/parallel.html) of a transformation can be defined by `setParallelism(int)` while
-`name(String)` assigns a custom name to a transformation which is helpful for debugging. The same is
-possible for [Data Sources](#data-sources) and [Data Sinks](#data-sinks).
+transformation 的 [并行度]({{ site.baseurl }}/dev/parallel.html) 可以通过 `setParallelism(int)`设置，而通过
+`name(String)` 可以给 transformation 分配一个自定义的名称，这有助于调试.。
+ [Data Sources](#data-sources) 和 [Data Sinks](#data-sinks) 也是如此。
 
-`withParameters(Configuration)` passes Configuration objects, which can be accessed from the `open()` method inside the user function.
+`withParameters(Configuration)`  传递 Configuration 对象, 可以从用户函数内的  `open()` 方法访问。
 
 {% top %}
 
-Data Sources
+数据源
 ------------
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
 
-Data sources create the initial data sets, such as from files or from Java collections. The general
-mechanism of creating data sets is abstracted behind an
-{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/InputFormat.java "InputFormat"%}.
-Flink comes
-with several built-in formats to create data sets from common file formats. Many of them have
-shortcut methods on the *ExecutionEnvironment*.
+数据源创建初始 DataSet, 例如冲文件或 Java 集合。创建 DataSet 的一般机制是在
+{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/InputFormat.java "InputFormat"%}后面抽象出来的。
+ Flink带有几种内置格式，可以从常用文件格式创建 DataSet 。很多在 *ExecutionEnvironmen* 上都有快捷方式。
 
-File-based:
+基于文件:
 
-- `readTextFile(path)` / `TextInputFormat` - Reads files line wise and returns them as Strings.
+- `readTextFile(path)` / `TextInputFormat` - 以行的方式读取文件并将其作为字符串返回。
 
-- `readTextFileWithValue(path)` / `TextValueInputFormat` - Reads files line wise and returns them as
-  StringValues. StringValues are mutable strings.
+- `readTextFileWithValue(path)` / `TextValueInputFormat` - 以行的方式读取文件并将其作为 StringValues 返回。
+  StringValues 是可变的字符串。
 
-- `readCsvFile(path)` / `CsvInputFormat` - Parses files of comma (or another char) delimited fields.
-  Returns a DataSet of tuples or POJOs. Supports the basic java types and their Value counterparts as field
-  types.
+- `readCsvFile(path)` / `CsvInputFormat` - 解析逗号（或其他字符）分隔字段的文件。返回元组或POJO的数据集。字段类型支持基本的Java类型及其Value对应项。
 
-- `readFileOfPrimitives(path, Class)` / `PrimitiveInputFormat` - Parses files of new-line (or another char sequence)
-  delimited primitive data types such as `String` or `Integer`.
+- `readFileOfPrimitives(path, Class)` / `PrimitiveInputFormat` -解析新行（或其他字符序列）分隔的原始数据类型（如String或Integer）的文件。
 
-- `readFileOfPrimitives(path, delimiter, Class)` / `PrimitiveInputFormat` - Parses files of new-line (or another char sequence)
-   delimited primitive data types such as `String` or `Integer` using the given delimiter.
+- `readFileOfPrimitives(path, delimiter, Class)` / `PrimitiveInputFormat` - 使用给定的分隔符解析新行（或其他字符序列）分隔的基本数据类型（如“String”或“Integer”）的文件。
 
-- `readHadoopFile(FileInputFormat, Key, Value, path)` / `FileInputFormat` - Creates a JobConf and reads file from the specified
-   path with the specified FileInputFormat, Key class and Value class and returns them as Tuple2<Key, Value>.
+- `readHadoopFile(FileInputFormat, Key, Value, path)` / `FileInputFormat` - 创建JobConf并使用指定的FileInputFormat，Key类和Value类从指定路径读取文件，并将它们作为Tuple2<Key,Value>返回。
 
-- `readSequenceFile(Key, Value, path)` / `SequenceFileInputFormat` - Creates a JobConf and reads file from the specified path with
-   type SequenceFileInputFormat, Key class and Value class and returns them as Tuple2<Key, Value>.
+- `readSequenceFile(Key, Value, path)` / `SequenceFileInputFormat` - 创建JobConf并从SequenceFileInputFormat，Key类和Value类的指定路径中读取文件，并将它们作为Tuple2 <Key，Value>返回。
 
 
-Collection-based:
+基于集合:
 
-- `fromCollection(Collection)` - Creates a data set from the Java Java.util.Collection. All elements
-  in the collection must be of the same type.
+- `fromCollection(Collection)` - 从Java Java.util.Collection 创建 DataSet。在集合中所有元素的数据类型必须一样.
 
-- `fromCollection(Iterator, Class)` - Creates a data set from an iterator. The class specifies the
-  data type of the elements returned by the iterator.
+- `fromCollection(Iterator, Class)` -  从迭代器创建 DataSet 。 Class 指定迭代器返回的元素的数据类型。
 
-- `fromElements(T ...)` - Creates a data set from the given sequence of objects. All objects must be
-  of the same type.
+- `fromElements(T ...)` - 根据给定的对象序列创建一个 DataSet。所有对象必须是相同的类型。
 
-- `fromParallelCollection(SplittableIterator, Class)` - Creates a data set from an iterator, in
-  parallel. The class specifies the data type of the elements returned by the iterator.
+- `fromParallelCollection(SplittableIterator, Class)` -  并行创建迭代器中的数据集。Class指定迭代器返回的元素的数据类型。
 
-- `generateSequence(from, to)` - Generates the sequence of numbers in the given interval, in
-  parallel.
+- `generateSequence(from, to)` - 并行生成给定间隔内的数字序列。
 
-Generic:
+通用:
 
-- `readFile(inputFormat, path)` / `FileInputFormat` - Accepts a file input format.
+- `readFile(inputFormat, path)` / `FileInputFormat` -接受文件输入格式。
 
-- `createInput(inputFormat)` / `InputFormat` - Accepts a generic input format.
+- `createInput(inputFormat)` / `InputFormat` -  接受通用输入格式。
 
-**Examples**
+**示例**
 
 {% highlight java %}
 ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
@@ -909,31 +885,30 @@ DataSet<Tuple2<String, Integer> dbData =
 // manually provide the type information as shown in the examples above.
 {% endhighlight %}
 
-#### Configuring CSV Parsing
+#### 配置CSV解析
 
-Flink offers a number of configuration options for CSV parsing:
+Flink为CSV解析提供了许多配置选项：
 
-- `types(Class ... types)` specifies the types of the fields to parse. **It is mandatory to configure the types of the parsed fields.**
-  In case of the type class Boolean.class, "True" (case-insensitive), "False" (case-insensitive), "1" and "0" are treated as booleans.
+- `types(Class ... types)` 指定要解析的字段的类型。**必须配置解析字段的类型。** 在类型为Boolean.class的情况下，“True”（不区分大小写），“False”（区分大小写），“1”和“0”被视为布尔值。
 
-- `lineDelimiter(String del)` specifies the delimiter of individual records. The default line delimiter is the new-line character `'\n'`.
+- `lineDelimiter(String del)` 指定单个记录的分隔符。默认的行分隔符是换行符“\n”。
 
-- `fieldDelimiter(String del)` specifies the delimiter that separates fields of a record. The default field delimiter is the comma character `','`.
+- `fieldDelimiter(String del)` 指定分隔记录字段的分隔符。默认的字段分隔符是逗号字符`','`。
 
-- `includeFields(boolean ... flag)`, `includeFields(String mask)`, or `includeFields(long bitMask)` defines which fields to read from the input file (and which to ignore). By default the first *n* fields (as defined by the number of types in the `types()` call) are parsed.
+- `includeFields(boolean ... flag)`, `includeFields(String mask)`, or `includeFields(long bitMask)` 定义从输入文件中读取哪些字段（以及要忽略哪些字段）。默认情况下，前n个字段（由 types()定义的类型数量）被解析。
 
-- `parseQuotedStrings(char quoteChar)` enables quoted string parsing. Strings are parsed as quoted strings if the first character of the string field is the quote character (leading or tailing whitespaces are *not* trimmed). Field delimiters within quoted strings are ignored. Quoted string parsing fails if the last character of a quoted string field is not the quote character or if the quote character appears at some point which is not the start or the end of the quoted string field (unless the quote character is escaped using '\'). If quoted string parsing is enabled and the first character of the field is *not* the quoting string, the string is parsed as unquoted string. By default, quoted string parsing is disabled.
+- `parseQuotedStrings(char quoteChar)` 启用带引号的字符串解析。如果字符串字段的第一个字符是引号字符（引号或尾部的空格是*不*修剪的），则字符串将被解析为带引号的字符串。引号字符串中的字段分隔符将被忽略。如果引用字符串字段的最后一个字符不是引号字符，或者引号字符出现在某个不是引号字符串字段开始或结尾的位置，则引号字符串解析失败（除非引号字符使用'\'）。如果启用了带引号的字符串解析并且该字段的第一个字符是*非*引号字符串，则该字符串将被解析为未加引号的字符串。默认情况下，引号字符串解析被禁用。
 
-- `ignoreComments(String commentPrefix)` specifies a comment prefix. All lines that start with the specified comment prefix are not parsed and ignored. By default, no lines are ignored.
+- `ignoreComments(String commentPrefix)` 指定一个注释前缀。所有以指定的注释前缀开头的行都不会被解析和忽略。默认情况下，不会忽略任何行。
 
-- `ignoreInvalidLines()` enables lenient parsing, i.e., lines that cannot be correctly parsed are ignored. By default, lenient parsing is disabled and invalid lines raise an exception.
+- `ignoreInvalidLines()` 允许宽松的解析，即忽略不能被正确解析的行。默认情况下，lenient解析被禁用，无效行将引发异常。
 
-- `ignoreFirstLine()` configures the InputFormat to ignore the first line of the input file. By default no line is ignored.
+- `ignoreFirstLine()` 将InputFormat配置为忽略输入文件的第一行。默认情况下，不会忽略任何行。
 
 
-#### Recursive Traversal of the Input Path Directory
+#### 递归遍历输入目录
 
-For file-based inputs, when the input path is a directory, nested files are not enumerated by default. Instead, only the files inside the base directory are read, while nested files are ignored. Recursive enumeration of nested files can be enabled through the `recursive.file.enumeration` configuration parameter, like in the following example.
+对于基于文件的输入，当输入路径是目录时，默认情况下嵌套文件未被枚举。相反，只有基本目录内的文件被读取，而嵌套文件被忽略。通过`recursive.file.enumeration`配置参数可以启用嵌套文件的递归枚举，如下例所示。
 
 {% highlight java %}
 // enable recursive enumeration of nested input files
@@ -953,57 +928,53 @@ DataSet<String> logs = env.readTextFile("file:///path/with.nested/files")
 </div>
 <div data-lang="scala" markdown="1">
 
-Data sources create the initial data sets, such as from files or from Java collections. The general
-mechanism of creating data sets is abstracted behind an
-{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/InputFormat.java "InputFormat"%}.
-Flink comes
-with several built-in formats to create data sets from common file formats. Many of them have
-shortcut methods on the *ExecutionEnvironment*.
+数据源创建初始 DataSet, 例如冲文件或 Java 集合。创建 DataSet 的一般机制是在
+{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/InputFormat.java "InputFormat"%}后面抽象出来的。
+ Flink带有几种内置格式，可以从常用文件格式创建 DataSet 。很多在 *ExecutionEnvironmen* 上都有快捷方式。
 
 File-based:
 
-- `readTextFile(path)` / `TextInputFormat` - Reads files line wise and returns them as Strings.
+- `readTextFile(path)` / `TextInputFormat` - 以行的方式读取文件并将其作为字符串返回。
 
-- `readTextFileWithValue(path)` / `TextValueInputFormat` - Reads files line wise and returns them as
-  StringValues. StringValues are mutable strings.
+- `readTextFileWithValue(path)` / `TextValueInputFormat` - 以行的方式读取文件并将其作为 StringValues 返回。
+    StringValues 是可变的字符串。
 
-- `readCsvFile(path)` / `CsvInputFormat` - Parses files of comma (or another char) delimited fields.
-  Returns a DataSet of tuples, case class objects, or POJOs. Supports the basic java types and their Value counterparts as field
-  types.
+- `readCsvFile(path)` / `CsvInputFormat` - 解析逗号（或其他字符）分隔字段的文件。返回元组,case class objects或POJO的 DataSet。字段类型支持基本的Java类型及其Value对应项。
 
-- `readFileOfPrimitives(path, delimiter)` / `PrimitiveInputFormat` - Parses files of new-line (or another char sequence)
-  delimited primitive data types such as `String` or `Integer` using the given delimiter.
 
-- `readHadoopFile(FileInputFormat, Key, Value, path)` / `FileInputFormat` - Creates a JobConf and reads file from the specified
-   path with the specified FileInputFormat, Key class and Value class and returns them as Tuple2<Key, Value>.
+- `readFileOfPrimitives(path, delimiter)` / `PrimitiveInputFormat` - 解析新行（或其他字符序列）分隔的原始数据类型（如String或Integer）的文件。
 
-- `readSequenceFile(Key, Value, path)` / `SequenceFileInputFormat` - Creates a JobConf and reads file from the specified path with
-   type SequenceFileInputFormat, Key class and Value class and returns them as Tuple2<Key, Value>.
 
-Collection-based:
+- `readHadoopFile(FileInputFormat, Key, Value, path)` / `FileInputFormat` - 创建JobConf并使用指定的FileInputFormat，Key类和Value类从指定路径读取文件，并将它们作为Tuple2<Key,Value>返回。
 
-- `fromCollection(Seq)` - Creates a data set from a Seq. All elements
-  in the collection must be of the same type.
 
-- `fromCollection(Iterator)` - Creates a data set from an Iterator. The class specifies the
-  data type of the elements returned by the iterator.
+- `readSequenceFile(Key, Value, path)` / `SequenceFileInputFormat` -  创建JobConf并从SequenceFileInputFormat，Key类和Value类的指定路径中读取文件，并将它们作为Tuple2 <Key，Value>返回。
 
-- `fromElements(elements: _*)` - Creates a data set from the given sequence of objects. All objects
-  must be of the same type.
 
-- `fromParallelCollection(SplittableIterator)` - Creates a data set from an iterator, in
-  parallel. The class specifies the data type of the elements returned by the iterator.
+基于集合:
 
-- `generateSequence(from, to)` - Generates the sequence of numbers in the given interval, in
-  parallel.
+- `fromCollection(Seq)` - 从 Seq 创建 DataSet。在集合中所有元素的数据类型必须一样。
 
-Generic:
 
-- `readFile(inputFormat, path)` / `FileInputFormat` - Accepts a file input format.
+- `fromCollection(Iterator)` - 从迭代器创建 DataSet 。 Class 指定迭代器返回的元素的数据类型。
 
-- `createInput(inputFormat)` / `InputFormat` - Accepts a generic input format.
 
-**Examples**
+- `fromElements(elements: _*)` - 根据给定的对象序列创建一个 DataSet。所有对象必须是相同的类型。
+
+
+- `fromParallelCollection(SplittableIterator)` - 并行创建迭代器中的数据集。Class指定迭代器返回的元素的数据类型。
+
+
+- `generateSequence(from, to)` - 并行生成给定间隔内的数字序列。并行生成给定间隔内的数字序列。
+
+
+通用:
+
+- `readFile(inputFormat, path)` / `FileInputFormat` - 接受文件输入格式。
+
+- `createInput(inputFormat)` / `InputFormat` - 接受通用输入格式。
+
+**示例**
 
 {% highlight scala %}
 val env  = ExecutionEnvironment.getExecutionEnvironment
@@ -1049,29 +1020,29 @@ val tuples = env.readSequenceFile(classOf[IntWritable], classOf[Text],
 
 {% endhighlight %}
 
-#### Configuring CSV Parsing
+#### 配置CSV解析
 
-Flink offers a number of configuration options for CSV parsing:
+Flink为CSV解析提供了许多配置选项：
 
-- `lineDelimiter: String` specifies the delimiter of individual records. The default line delimiter is the new-line character `'\n'`.
+- `lineDelimiter: String` 指定单个记录的分隔符。默认的行分隔符是换行符“\n”。
 
-- `fieldDelimiter: String` specifies the delimiter that separates fields of a record. The default field delimiter is the comma character `','`.
+- `fieldDelimiter: String` 指定分隔记录字段的分隔符。默认的字段分隔符是逗号字符`','`。
 
-- `includeFields: Array[Int]` defines which fields to read from the input file (and which to ignore). By default the first *n* fields (as defined by the number of types in the `types()` call) are parsed.
+- `includeFields: Array[Int]` 定义从输入文件中读取哪些字段（以及要忽略哪些字段）。默认情况下，前n个字段（由 types()定义的类型数量）被解析。
 
-- `pojoFields: Array[String]` specifies the fields of a POJO that are mapped to CSV fields. Parsers for CSV fields are automatically initialized based on the type and order of the POJO fields.
+- `pojoFields: Array[String]` 指定映射到CSV字段的POJO的字段。根据POJO字段的类型和顺序自动初始化CSV字段的解析器。
 
-- `parseQuotedStrings: Character` enables quoted string parsing. Strings are parsed as quoted strings if the first character of the string field is the quote character (leading or tailing whitespaces are *not* trimmed). Field delimiters within quoted strings are ignored. Quoted string parsing fails if the last character of a quoted string field is not the quote character. If quoted string parsing is enabled and the first character of the field is *not* the quoting string, the string is parsed as unquoted string. By default, quoted string parsing is disabled.
+- `parseQuotedStrings: Character` 启用带引号的字符串解析。如果字符串字段的第一个字符是引号字符（引号或尾部的空格是*不*修剪的），则字符串将被解析为带引号的字符串。引号字符串中的字段分隔符将被忽略。如果引用字符串字段的最后一个字符不是引号字符，或者引号字符出现在某个不是引号字符串字段开始或结尾的位置，则引号字符串解析失败（除非引号字符使用'\'）。如果启用了带引号的字符串解析并且该字段的第一个字符是*非*引号字符串，则该字符串将被解析为未加引号的字符串。默认情况下，引号字符串解析被禁用。
 
-- `ignoreComments: String` specifies a comment prefix. All lines that start with the specified comment prefix are not parsed and ignored. By default, no lines are ignored.
+- `ignoreComments: String` 指定一个注释前缀。所有以指定的注释前缀开头的行都不会被解析和忽略。默认情况下，不会忽略任何行。
 
-- `lenient: Boolean` enables lenient parsing, i.e., lines that cannot be correctly parsed are ignored. By default, lenient parsing is disabled and invalid lines raise an exception.
+- `lenient: Boolean` 允许宽松的解析，即忽略不能被正确解析的行。默认情况下，lenient解析被禁用，无效行将引发异常。
 
-- `ignoreFirstLine: Boolean` configures the InputFormat to ignore the first line of the input file. By default no line is ignored.
+- `ignoreFirstLine: Boolean` 将InputFormat配置为忽略输入文件的第一行。默认情况下，不会忽略任何行。
 
-#### Recursive Traversal of the Input Path Directory
+#### 递归遍历输入目录
 
-For file-based inputs, when the input path is a directory, nested files are not enumerated by default. Instead, only the files inside the base directory are read, while nested files are ignored. Recursive enumeration of nested files can be enabled through the `recursive.file.enumeration` configuration parameter, like in the following example.
+对于基于文件的输入，当输入路径是目录时，默认情况下嵌套文件未被枚举。相反，只有基本目录内的文件被读取，而嵌套文件被忽略。通过`recursive.file.enumeration`配置参数可以启用嵌套文件的递归枚举，如下例所示。
 
 {% highlight scala %}
 // enable recursive enumeration of nested input files
@@ -1090,20 +1061,20 @@ env.readTextFile("file:///path/with.nested/files").withParameters(parameters)
 </div>
 </div>
 
-### Read Compressed Files
+### 读取压缩文件
 
-Flink currently supports transparent decompression of input files if these are marked with an appropriate file extension. In particular, this means that no further configuration of the input formats is necessary and any `FileInputFormat` support the compression, including custom input formats. Please notice that compressed files might not be read in parallel, thus impacting job scalability.
+Flink目前支持对输入文件进行透明解压缩，如果这些文件标有适当的文件扩展名。这意味着不需要进一步配置输入格式，任何`FileInputFormat`都支持压缩，包括自定义输入格式。请注意，压缩文件可能无法并行读取，从而影响作业的可伸缩性。
 
-The following table lists the currently supported compression methods.
+下表列出了当前支持的压缩方式。
 
 <br />
 
 <table class="table table-bordered">
   <thead>
     <tr>
-      <th class="text-left" style="width: 20%">Compression method</th>
-      <th class="text-left">File extensions</th>
-      <th class="text-left" style="width: 20%">Parallelizable</th>
+      <th class="text-left" style="width: 20%">压缩方式</th>
+      <th class="text-left">文件扩展名</th>
+      <th class="text-left" style="width: 20%">是否可以并行读取</th>
     </tr>
   </thead>
 
@@ -1140,33 +1111,24 @@ Data Sinks
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
 
-Data sinks consume DataSets and are used to store or return them. Data sink operations are described
-using an
-{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java "OutputFormat" %}.
-Flink comes with a variety of built-in output formats that are encapsulated behind operations on the
-DataSet:
+Data sinks 消费 DataSets 并且 存储或者返回计算结果。 Data sink 操作使用
+{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java "OutputFormat" %} 进行描述。
+Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet上的操作之后：
 
-- `writeAsText()` / `TextOutputFormat` - Writes elements line-wise as Strings. The Strings are
-  obtained by calling the *toString()* method of each element.
-- `writeAsFormattedText()` / `TextOutputFormat` - Write elements line-wise as Strings. The Strings
-  are obtained by calling a user-defined *format()* method for each element.
-- `writeAsCsv(...)` / `CsvOutputFormat` - Writes tuples as comma-separated value files. Row and field
-  delimiters are configurable. The value for each field comes from the *toString()* method of the objects.
-- `print()` / `printToErr()` / `print(String msg)` / `printToErr(String msg)` - Prints the *toString()* value
-of each element on the standard out / standard error stream. Optionally, a prefix (msg) can be provided which is
-prepended to the output. This can help to distinguish between different calls to *print*. If the parallelism is
-greater than 1, the output will also be prepended with the identifier of the task which produced the output.
-- `write()` / `FileOutputFormat` - Method and base class for custom file outputs. Supports
-  custom object-to-bytes conversion.
-- `output()`/ `OutputFormat` - Most generic output method, for data sinks that are not file based
-  (such as storing the result in a database).
+- `writeAsText()` / `TextOutputFormat` - 将元素按行方式编写为字符串。字符串是通过调用每个元素的* toString()*方法获得的。
+- `writeAsFormattedText()` / `TextOutputFormat` -将元素按行方式编写为字符串。字符串是通过调用为每个元素自定义的* format()*方法获得的。
+- `writeAsCsv(...)` / `CsvOutputFormat` - 将元组写为逗号分隔的值文件。行和字段分隔符是可配置的。每个字段的值来自对象的*toString()*方法。
+- `print()` / `printToErr()` / `print(String msg)` / `printToErr(String msg)` - 打印标准输出 / 标准错误流上每个元素的* toString()*值。可以提供前缀（msg）(可选)，该前缀先输出。
+这可以帮助区分不同的*print*的调用。如果并行度大于1，则输出还会与生成输出的任务的标识符一起作为前缀。
+- `write()` / `FileOutputFormat` - 自定义文件输出的方法和基类。支持自定义对象到字节的转换。
+- `output()`/ `OutputFormat` - 对于非基于文件的data sink（例如将结果存储在数据库中），最通用的输出方法。
 
-A DataSet can be input to multiple operations. Programs can write or print a data set and at the
-same time run additional transformations on them.
+DataSet可以输入到多个operation。程序可以输出或打印一个数据集，同时对它们进行额外的转换。
 
-**Examples**
 
-Standard data sink methods:
+**示例**
+
+标准的data sink 方法:
 
 {% highlight java %}
 // text data
@@ -1197,7 +1159,7 @@ values.writeAsFormattedText("file:///path/to/the/result/file",
     });
 {% endhighlight %}
 
-Using a custom output format:
+使用自定义的输出格式:
 
 {% highlight java %}
 DataSet<Tuple3<String, Integer, Double>> myResult = [...]
@@ -1213,11 +1175,11 @@ myResult.output(
     );
 {% endhighlight %}
 
-#### Locally Sorted Output
+#### 本地排序输出
 
-The output of a data sink can be locally sorted on specified fields in specified orders using [tuple field positions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-for-tuples) or [field expressions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions). This works for every output format.
+可以使用[tuple 字段位置]({{ site.baseurl }}/dev/api_concepts.html#define-keys-for-tuples) 或者 [字段表达式]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions)可以按照指定的顺序在指定的字段上对 data sink的输出进行本地排序。这适用于每种输出格式。
 
-The following examples show how to use this feature:
+以下示例展示了如何使用这个特性:
 
 {% highlight java %}
 
@@ -1242,33 +1204,25 @@ sData.sortPartition("*", Order.DESCENDING).writeAsText(...);
 
 {% endhighlight %}
 
-Globally sorted output is not supported yet.
+全局排序现在还不支持。
 
 </div>
 <div data-lang="scala" markdown="1">
-Data sinks consume DataSets and are used to store or return them. Data sink operations are described
-using an
-{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java "OutputFormat" %}.
-Flink comes with a variety of built-in output formats that are encapsulated behind operations on the
-DataSet:
+Data sinks 消费 DataSets 并且 存储或者返回计算结果。 Data sink 操作使用
+{% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java "OutputFormat" %} 进行描述。
+Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet上的操作之后：
 
-- `writeAsText()` / `TextOutputFormat` - Writes elements line-wise as Strings. The Strings are
-  obtained by calling the *toString()* method of each element.
-- `writeAsCsv(...)` / `CsvOutputFormat` - Writes tuples as comma-separated value files. Row and field
-  delimiters are configurable. The value for each field comes from the *toString()* method of the objects.
-- `print()` / `printToErr()` - Prints the *toString()* value of each element on the
-  standard out / standard error stream.
-- `write()` / `FileOutputFormat` - Method and base class for custom file outputs. Supports
-  custom object-to-bytes conversion.
-- `output()`/ `OutputFormat` - Most generic output method, for data sinks that are not file based
-  (such as storing the result in a database).
+- `writeAsText()` / `TextOutputFormat` -  将元素按行方式编写为字符串。字符串是通过调用每个元素的* toString()*方法获得的。
+- `writeAsCsv(...)` / `CsvOutputFormat` - 将元组写为逗号分隔的值文件。行和字段分隔符是可配置的。每个字段的值来自对象的*toString()*方法。
+- `print()` / `printToErr()` - 打印标准输出 / 标准错误流上每个元素的*toString()*值。
+- `write()` / `FileOutputFormat` -自定义文件输出的方法和基类。支持自定义对象到字节的转换。
+- `output()`/ `OutputFormat` - 对于非基于文件的data sink（例如将结果存储在数据库中），最通用的输出方法。
 
-A DataSet can be input to multiple operations. Programs can write or print a data set and at the
-same time run additional transformations on them.
+DataSet可以输入到多个operation。程序可以输出或打印一个数据集，同时对它们进行额外的转换。
 
-**Examples**
+**示例**
 
-Standard data sink methods:
+标准的data sink 方法:
 
 {% highlight scala %}
 // text data
@@ -1296,11 +1250,11 @@ values map { tuple => tuple._1 + " - " + tuple._2 }
 {% endhighlight %}
 
 
-#### Locally Sorted Output
+####本地排序输出
 
-The output of a data sink can be locally sorted on specified fields in specified orders using [tuple field positions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-for-tuples) or [field expressions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions). This works for every output format.
+可以使用[tuple 字段位置]({{ site.baseurl }}/dev/api_concepts.html#define-keys-for-tuples) 或者 [字段表达式]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions)可以按照指定的顺序在指定的字段上对 data sink的输出进行本地排序。这适用于每种输出格式。
 
-The following examples show how to use this feature:
+以下示例展示了如何使用这个特性:
 
 {% highlight scala %}
 
@@ -1325,7 +1279,7 @@ sData.sortPartition("_", Order.DESCENDING).writeAsText(...)
 
 {% endhighlight %}
 
-Globally sorted output is not supported yet.
+全局排序现在还不支持。
 
 </div>
 </div>
@@ -1336,33 +1290,25 @@ Globally sorted output is not supported yet.
 Iteration Operators
 -------------------
 
-Iterations implement loops in Flink programs. The iteration operators encapsulate a part of the
-program and execute it repeatedly, feeding back the result of one iteration (the partial solution)
-into the next iteration. There are two types of iterations in Flink: **BulkIteration** and
-**DeltaIteration**.
+Iterations 在Flink程序中实现循环。迭代运算符封装程序的一部分并重复执行它。
+将一次迭代的结果（部分解）反馈到下一次迭代中。Flink有两种类型的迭代：**BulkIteration**和**DeltaIteration**。
 
-This section provides quick examples on how to use both operators. Check out the [Introduction to
-Iterations](iterations.html) page for a more detailed introduction.
+本节提供了有关如何使用两个operators的简单示例。查看[迭代介绍](iterations.html)页面以获取更详细的介绍。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
 
 #### Bulk Iterations
 
-To create a BulkIteration call the `iterate(int)` method of the DataSet the iteration should start
-at. This will return an `IterativeDataSet`, which can be transformed with the regular operators. The
-single argument to the iterate call specifies the maximum number of iterations.
+为了创建一个BulkIteration调用，迭代应该从DataSet的iterate(int)方法开始。这将返回一个`IterativeDataSet`，
+它可以通过常规操作符进行转换。iterate(int)的单个参数指定最大迭代次数。
 
-To specify the end of an iteration call the `closeWith(DataSet)` method on the `IterativeDataSet` to
-specify which transformation should be fed back to the next iteration. You can optionally specify a
-termination criterion with `closeWith(DataSet, DataSet)`, which evaluates the second DataSet and
-terminates the iteration, if this DataSet is empty. If no termination criterion is specified, the
-iteration terminates after the given maximum number iterations.
+要指定迭代结束,调用IterativeDataSet上的`closeWith(DataSet)`方法来指定哪个变换应该反馈到下一次迭代。
+您可以选择使用`closeWith(DataSet,DataSet)`指定终止标准，如果此DataSet为空，则该标准将评估第二个DataSet并终止迭代。
+如果未指定终止标准，则迭代在给定的最大次数迭代之后终止。
 
-The following example iteratively estimates the number Pi. The goal is to count the number of random
-points, which fall into the unit circle. In each iteration, a random point is picked. If this point
-lies inside the unit circle, we increment the count. Pi is then estimated as the resulting count
-divided by the number of iterations multiplied by 4.
+以下示例迭代估计数字Pi。目标是计算落入单位圆圈的随机点的数量。在每次迭代中，挑选一个随机点。如果这一点位于单位圆内，
+我们会增加计数。 然后Pi被估计为结果计数除以迭代次数乘以4。
 
 {% highlight java %}
 final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
@@ -1393,32 +1339,25 @@ count.map(new MapFunction<Integer, Double>() {
 env.execute("Iterative Pi Example");
 {% endhighlight %}
 
-You can also check out the
-{% gh_link /flink-examples/flink-examples-batch/src/main/java/org/apache/flink/examples/java/clustering/KMeans.java "K-Means example" %},
-which uses a BulkIteration to cluster a set of unlabeled points.
+你也可以看看 {% gh_link /flink-examples/flink-examples-batch/src/main/java/org/apache/flink/examples/java/clustering/KMeans.java "K-Means example" %}。
+它使用BulkIteration对一组未标记的点进行聚类。
 
 #### Delta Iterations
 
-Delta iterations exploit the fact that certain algorithms do not change every data point of the
-solution in each iteration.
+Delta迭代利用了这样的事实：某些算法不会在每次迭代中更改解决方案的每个数据点。
 
-In addition to the partial solution that is fed back (called workset) in every iteration, delta
-iterations maintain state across iterations (called solution set), which can be updated through
-deltas. The result of the iterative computation is the state after the last iteration. Please refer
-to the [Introduction to Iterations](iterations.html) for an overview of the basic principle of delta
-iterations.
+除了在每次迭代中反馈的部分解决方案（称为工作集）之外，增量迭代在迭代中保持状态（称为解决方案集），可以通过增量更新。
+迭代计算的结果是最后迭代之后的状态。请参阅[迭代介绍](terations.html)，了解Delta迭代的基本原理。
 
-Defining a DeltaIteration is similar to defining a BulkIteration. For delta iterations, two data
-sets form the input to each iteration (workset and solution set), and two data sets are produced as
-the result (new workset, solution set delta) in each iteration.
+定义DeltaIteration与定义BulkIteration类似。对于增量迭代，两个数据集形成每次迭代（工作集和解决方案集）的输入，
+并且在每次迭代中产生两个数据集作为结果（新工作集，解集delta）。
 
-To create a DeltaIteration call the `iterateDelta(DataSet, int, int)` (or `iterateDelta(DataSet,
-int, int[])` respectively). This method is called on the initial solution set. The arguments are the
-initial delta set, the maximum number of iterations and the key positions. The returned
-`DeltaIteration` object gives you access to the DataSets representing the workset and solution set
-via the methods `iteration.getWorkset()` and `iteration.getSolutionSet()`.
+要创建一个DeltaIteration，调用iterateDelta(DataSet,int,int)（或分别调用iterateDelta(DataSet,int,int []））。
+此方法在初始解决方案集上调用。参数是初始增量集，最大迭代次数和关键位置。
+返回的DeltaIteration对象使您可以通过方法iteration.getWorkset()和iteration.getSolutionSet()
+访问表示工作集和解决方案集的DataSet。
 
-Below is an example for the syntax of a delta iteration
+下面是一个 delta iteration 语法的示例
 
 {% highlight java %}
 // read the initial data sets
@@ -1453,19 +1392,14 @@ iteration.closeWith(deltas, nextWorkset)
 <div data-lang="scala" markdown="1">
 #### Bulk Iterations
 
-To create a BulkIteration call the `iterate(int)` method of the DataSet the iteration should start
-at and also specify a step function. The step function gets the input DataSet for the current
-iteration and must return a new DataSet. The parameter of the iterate call is the maximum number
-of iterations after which to stop.
+要创建一个BulkIteration调用，迭代应该从DataSet的iterate(int)方法开始，同时指定一个step函数。
+step函数获取当前迭代的输入DataSet，并且必须返回一个新的DataSet。iterate(int)的参数是最大迭代次数。
 
-There is also the `iterateWithTermination(int)` function that accepts a step function that
-returns two DataSets: The result of the iteration step and a termination criterion. The iterations
-are stopped once the termination criterion DataSet is empty.
+还有`iterateWithTermination(int)`函数接受一个返回两个数据集的步骤函数：迭代步骤的结果和终止标准。
+一旦终止标准DataSet为空，迭代就会停止。
 
-The following example iteratively estimates the number Pi. The goal is to count the number of random
-points, which fall into the unit circle. In each iteration, a random point is picked. If this point
-lies inside the unit circle, we increment the count. Pi is then estimated as the resulting count
-divided by the number of iterations multiplied by 4.
+以下示例迭代估计数字Pi。目标是计算落入单位圆圈的随机点的数量。在每次迭代中，挑选一个随机点。如果这一点位于单位圆内，
+我们会增加计数。 然后Pi被估计为结果计数除以迭代次数乘以4。
 
 {% highlight scala %}
 val env = ExecutionEnvironment.getExecutionEnvironment()
@@ -1489,30 +1423,23 @@ result.print()
 env.execute("Iterative Pi Example")
 {% endhighlight %}
 
-You can also check out the
-{% gh_link /flink-examples/flink-examples-batch/src/main/scala/org/apache/flink/examples/scala/clustering/KMeans.scala "K-Means example" %},
-which uses a BulkIteration to cluster a set of unlabeled points.
+你也可以看看  {% gh_link /flink-examples/flink-examples-batch/src/main/scala/org/apache/flink/examples/scala/clustering/KMeans.scala "K-Means example" %}。
+它使用BulkIteration对一组未标记的点进行聚类。
 
 #### Delta Iterations
 
-Delta iterations exploit the fact that certain algorithms do not change every data point of the
-solution in each iteration.
+Delta迭代利用了这样的事实：某些算法不会在每次迭代中更改解决方案的每个数据点。
 
-In addition to the partial solution that is fed back (called workset) in every iteration, delta
-iterations maintain state across iterations (called solution set), which can be updated through
-deltas. The result of the iterative computation is the state after the last iteration. Please refer
-to the [Introduction to Iterations](iterations.html) for an overview of the basic principle of delta
-iterations.
+除了在每次迭代中反馈的部分解决方案（称为工作集）之外，增量迭代在迭代中保持状态（称为解决方案集），可以通过增量更新。
+迭代计算的结果是最后迭代之后的状态。请参阅[迭代介绍](terations.html)，了解Delta迭代的基本原理。
 
-Defining a DeltaIteration is similar to defining a BulkIteration. For delta iterations, two data
-sets form the input to each iteration (workset and solution set), and two data sets are produced as
-the result (new workset, solution set delta) in each iteration.
+定义DeltaIteration与定义BulkIteration类似。对于增量迭代，两个数据集形成每次迭代（工作集和解决方案集）的输入，
+并且在每次迭代中产生两个数据集作为结果（新工作集，解集delta）。
 
-To create a DeltaIteration call the `iterateDelta(initialWorkset, maxIterations, key)` on the
-initial solution set. The step function takes two parameters: (solutionSet, workset), and must
-return two values: (solutionSetDelta, newWorkset).
+要在初始解决方案集上创建一个DeltaIteration调用`iterateDelta(initialWorkset，maxIterations，key)`。
+step函数有两个参数：(solutionSet，workset)，并且必须返回两个值：（solutionSetDelta，newWorkset）。
 
-Below is an example for the syntax of a delta iteration
+下面是一个 delta iteration 语法的示例
 
 {% highlight scala %}
 // read the initial data sets
@@ -1543,18 +1470,18 @@ env.execute()
 
 {% top %}
 
-Operating on data objects in functions
+在函数中操作数据对象
 --------------------------------------
 
-Flink's runtime exchanges data with user functions in form of Java objects. Functions receive input objects from the runtime as method parameters and return output objects as result. Because these objects are accessed by user functions and runtime code, it is very important to understand and follow the rules about how the user code may access, i.e., read and modify, these objects.
+Flink的运行时间以Java对象的形式与用户函数交换数据。函数接收来自运行时的输入对象作为方法参数，并返回输出对象作为结果。由于这些对象是由用户函数和运行时代码访问的，因此理解并遵循有关用户代码如何访问（即读取和修改）这些对象的规则是非常重要的。
 
-User functions receive objects from Flink's runtime either as regular method parameters (like a `MapFunction`) or through an `Iterable` parameter (like a `GroupReduceFunction`). We refer to objects that the runtime passes to a user function as *input objects*. User functions can emit objects to the Flink runtime either as a method return value (like a `MapFunction`) or through a `Collector` (like a `FlatMapFunction`). We refer to objects which have been emitted by the user function to the runtime as *output objects*.
+用户函数接收来自Flink运行时的对象，既可以是常规的方法参数（如MapFunction），也可以是Iterable参数（如GroupReduceFunction）。我们将运行时传递给用户函数的对象称为*输入对象*。 户函数可以将对象作为方法返回值（如`MapFunction`）或`Collector`（如`FlatMapFunction`）发送给Flink运行时。我们将用户函数发出的对象称为*输出对象*。
 
-Flink's DataSet API features two modes that differ in how Flink's runtime creates or reuses input objects. This behavior affects the guarantees and constraints for how user functions may interact with input and output objects. The following sections define these rules and give coding guidelines to write safe user function code.
+Flink的DataSet API具有两种模式，它们在Flink的运行时间如何创建或重新使用输入对象方面有所不同。此行为会影响用户函数如何与输入和输出对象交互的保证和约束。以下部分定义了这些规则并给出编写指导方针以编写安全的用户功能代码。
 
-### Object-Reuse Disabled (DEFAULT)
+### 禁用对象重用（DEFAULT）
 
-By default, Flink operates in object-reuse disabled mode. This mode ensures that functions always receive new input objects within a function call. The object-reuse disabled mode gives better guarantees and is safer to use. However, it comes with a certain processing overhead and might cause higher Java garbage collection activity. The following table explains how user functions may access input and output objects in object-reuse disabled mode.
+默认情况下，Flink以对象重用禁用模式运行。该模式确保函数始终在函数调用中接收新的输入对象。禁用对象的模式提供了更好的保证，并且更安全。但是，它会带来一定的处理开销，并可能导致更高的Java垃圾收集活动。下表说明了用户函数如何在禁用对象的模式下访问输入和输出对象。
 
 <table class="table table-bordered">
   <thead>
@@ -1593,15 +1520,15 @@ By default, Flink operates in object-reuse disabled mode. This mode ensures that
   </tbody>
 </table>
 
-**Coding guidelines for the object-reuse disabled (default) mode:**
+**对象重用禁用（默认）模式的编码准则：**
 
-- Do not remember and read input objects across method calls.
-- Do not read objects after you emitted them.
+- 不要在方法调用中记住和读取输入对象。
+- 在你释放对象之后，不要读取对象。
 
 
-### Object-Reuse Enabled
+### 启用对象重用
 
-In object-reuse enabled mode, Flink's runtime minimizes the number of object instantiations. This can improve the performance and can reduce the Java garbage collection pressure. The object-reuse enabled mode is activated by calling `ExecutionConfig.enableObjectReuse()`. The following table explains how user functions may access input and output objects in object-reuse enabled mode.
+在启用对象重用的模式下，Flink的运行时将对象实例的数量减到最少。这可以提高性能并降低Java垃圾收集压力。通过调用`ExecutionConfig.enableObjectReuse()`来激活启用对象重用模式。下表说明用户功能如何在启用对象重用模式下访问输入和输出对象。
 
 <table class="table table-bordered">
   <thead>
@@ -1646,33 +1573,28 @@ In object-reuse enabled mode, Flink's runtime minimizes the number of object ins
   </tbody>
 </table>
 
-**Coding guidelines for object-reuse enabled:**
+**已启用对象重用的编码准则：**
 
-- Do not remember input objects received from an `Iterable`.
-- Do not remember and read input objects across method calls.
-- Do not modify or emit input objects, except for input objects of `MapFunction`, `FlatMapFunction`, `MapPartitionFunction`, `GroupReduceFunction`, `GroupCombineFunction`, `CoGroupFunction`, and `InputFormat.next(reuse)`.
-- To reduce object instantiations, you can always emit a dedicated output object which is repeatedly modified but never read.
+- 不要记住从Iterable接收到的输入对象。
+- 不要在方法调用中记住和读取输入对象。
+- 除了`MapFunction`，`FlatMapFunction`，`MapPartitionFunction`，`GroupReduceFunction`，`GroupCombineFunction`，`CoGroupFunction`和`InputFormat.next（重用）`的输入对象之外，不要修改或发出输入对象。
+- 为了减少对象实例化，您可以始终发出一个重复修改但从不读取的专用输出对象。
 
 {% top %}
 
 Debugging
 ---------
 
-Before running a data analysis program on a large data set in a distributed cluster, it is a good
-idea to make sure that the implemented algorithm works as desired. Hence, implementing data analysis
-programs is usually an incremental process of checking results, debugging, and improving.
+在分布式集群中的大型数据集上运行数据分析程序之前，确保实施的算法按需运行是个不错的主意。因此，实施数据分析程序通常是检查结果，调试和改进的增量过程。
 
-Flink provides a few nice features to significantly ease the development process of data analysis
-programs by supporting local debugging from within an IDE, injection of test data, and collection of
-result data. This section give some hints how to ease the development of Flink programs.
+Flink提供了一些很好的功能，通过支持IDE内的本地调试，注入测试数据和收集结果数据，大大简化了数据分析程序的开发过程。
+本节提供了一些提示，如何简化Flink程序的开发。
 
-### Local Execution Environment
+### 本地执行环境
 
-A `LocalEnvironment` starts a Flink system within the same JVM process it was created in. If you
-start the LocalEnvironment from an IDE, you can set breakpoints in your code and easily debug your
-program.
+LocalEnvironment在创建它的相同JVM进程中启动Flink系统。如果从IDE启动LocalEnvironment，则可以在代码中设置断点并轻松地调试程序。
 
-A LocalEnvironment is created and used as follows:
+LocalEnvironment被创建和使用如下：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1698,14 +1620,12 @@ env.execute()
 </div>
 </div>
 
-### Collection Data Sources and Sinks
+### 收集 Data Sources 和 Sinks
 
-Providing input for an analysis program and checking its output is cumbersome when done by creating
-input files and reading output files. Flink features special data sources and sinks which are backed
-by Java collections to ease testing. Once a program has been tested, the sources and sinks can be
-easily replaced by sources and sinks that read from / write to external data stores such as HDFS.
+通过创建输入文件和读取输出文件完成分析程序的输入并检查其输出是非常麻烦的。Flink提供特殊的Data source和Sink。
+这些Data source和Sink由Java集合提供支持以简化测试。一旦程序经过测试，Data source和Sink就可以很容易地由读/写外部数据存储（如HDFS）的Data source和Sink代替
 
-Collection data sources can be used as follows:
+收集数据源可以如下使用：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1724,7 +1644,7 @@ Iterator<Long> longIt = ...
 DataSet<Long> myLongs = env.fromCollection(longIt, Long.class);
 {% endhighlight %}
 
-A collection data sink is specified as follows:
+Sink收集如下被指定:
 
 {% highlight java %}
 DataSet<Tuple2<String, Integer>> myResult = ...
@@ -1733,7 +1653,7 @@ List<Tuple2<String, Integer>> outData = new ArrayList<Tuple2<String, Integer>>()
 myResult.output(new LocalCollectionOutputFormat(outData));
 {% endhighlight %}
 
-**Note:** Currently, the collection data sink is restricted to local execution, as a debugging tool.
+**Note:** 目前，收集数据Sink仅限于本地执行，作为调试工具。
 
 </div>
 <div data-lang="scala" markdown="1">
@@ -1754,71 +1674,59 @@ val myLongs = env.fromCollection(longIt)
 </div>
 </div>
 
-**Note:** Currently, the collection data source requires that data types and iterators implement
-`Serializable`. Furthermore, collection data sources can not be executed in parallel (
-parallelism = 1).
+**Note:** 目前，收集数据源要求数据类型和迭代器实现Serializable。此外，收集数据源不能并行执行（parallelism = 1）。
 
 {% top %}
 
-Semantic Annotations
+语义注解
 -----------
 
-Semantic annotations can be used to give Flink hints about the behavior of a function.
-They tell the system which fields of a function's input the function reads and evaluates and
-which fields it unmodified forwards from its input to its output.
-Semantic annotations are a powerful means to speed up execution, because they
-allow the system to reason about reusing sort orders or partitions across multiple operations. Using
-semantic annotations may eventually save the program from unnecessary data shuffling or unnecessary
-sorts and significantly improve the performance of a program.
+语义注解可以用来给Flink提示关于函数的行为。他们告诉系统，函数需要读取和计算的函数输入的哪些字段，
+以及哪些未经修改的字段从输入转发到输出。语义注解是加速执行的强大手段，
+因为它们允许系统推理重复使用多个操作中的排序顺序或分区。
+使用语义标注最终可以避免不必要的数据混洗或不必要的排序，并显著提高程序的性能。
 
-**Note:** The use of semantic annotations is optional. However, it is absolutely crucial to
-be conservative when providing semantic annotations!
-Incorrect semantic annotations will cause Flink to make incorrect assumptions about your program and
-might eventually lead to incorrect results.
-If the behavior of an operator is not clearly predictable, no annotation should be provided.
-Please read the documentation carefully.
+**Note:**  语义注解的使用是可选的。但是，保守地使用语义注解至关重要！不正确的语义注解会导致Flink对您的程序做出不正确的判断。
+最终可能会导致错误的结果。如果operator的行为不能明确预测，则不应提供注释。请仔细阅读文档。
 
-The following semantic annotations are currently supported.
+目前支持以下语义注解。
 
 #### Forwarded Fields Annotation
 
-Forwarded fields information declares input fields which are unmodified forwarded by a function to the same position or to another position in the output.
-This information is used by the optimizer to infer whether a data property such as sorting or
-partitioning is preserved by a function.
-For functions that operate on groups of input elements such as `GroupReduce`, `GroupCombine`, `CoGroup`, and `MapPartition`, all fields that are defined as forwarded fields must always be jointly forwarded from the same input element. The forwarded fields of each element that is emitted by a group-wise function may originate from a different element of the function's input group.
+转发字段信息声明了未被函数更改的输入字段转发到输出中的相同位置或另一个位置。优化器使用此信息来推断某个数据属性（如排序或分区）是否由函数保留。
+对于对诸如GroupReduce，GroupCombine，CoGroup和MapPartition等对输入元素组进行操作的函数，
+所有定义为转发字段的字段必须始终从同一个输入元素共同转发。由分组函数发出的每个元素的转发字段可能来自函数输入组的不同元素。
 
-Field forward information is specified using [field expressions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions).
-Fields that are forwarded to the same position in the output can be specified by their position.
-The specified position must be valid for the input and output data type and have the same type.
-For example the String `"f2"` declares that the third field of a Java input tuple is always equal to the third field in the output tuple.
+字段转发信息是使用[字段表达式]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions)指定的。
+转发到输出中相同位置的字段可以通过它们的位置来指定。指定的位置必须对输入和输出数据的类型要相同。
+例如，字符串“f2”声明Java输入元组的第三个字段总是等于输出元组中的第三个字段。
 
-Fields which are unmodified forwarded to another position in the output are declared by specifying the
-source field in the input and the target field in the output as field expressions.
-The String `"f0->f2"` denotes that the first field of the Java input tuple is
-unchanged copied to the third field of the Java output tuple. The wildcard expression `*` can be used to refer to a whole input or output type, i.e., `"f0->*"` denotes that the output of a function is always equal to the first field of its Java input tuple.
+通过在输入中指定源字段并在输出中指定目标字段作为字段表达式，来声明未经修改而转发到输出中另一位置的字段。
+字符串 `"f0->f2"` 表示Java输入元组的第一个字段会被无更改的复制到Java输出元组的第三个字段。
+通配符表达式`*`可以用来指整个输入或输出类型，即`"f0->*"`表示函数的输出总是等于其Java输入元组的第一个字段。
 
-Multiple forwarded fields can be declared in a single String by separating them with semicolons as `"f0; f2->f1; f3->f2"` or in separate Strings `"f0", "f2->f1", "f3->f2"`. When specifying forwarded fields it is not required that all forwarded fields are declared, but all declarations must be correct.
+多个转发字段可以在单个字符串中声明，方法是用分号分隔为 `"f0; f2->f1; f3->f2"`或单独的字符串`"f0", "f2->f1", "f3->f2"`。
+ 指定转发字段时，不需要声明所有转发字段，但所有声明都必须正确。
 
-Forwarded field information can be declared by attaching Java annotations on function class definitions or
-by passing them as operator arguments after invoking a function on a DataSet as shown below.
+转发的字段信息可以通过在函数类定义上附加Java注解或在调用DataSet上的函数后将其作为 operator 参数传递来声明，如下所示。
 
-##### Function Class Annotations
+##### 函数类注解
 
-* `@ForwardedFields` for single input functions such as Map and Reduce.
-* `@ForwardedFieldsFirst` for the first input of a functions with two inputs such as Join and CoGroup.
-* `@ForwardedFieldsSecond` for the second input of a functions with two inputs such as Join and CoGroup.
+* `@ForwardedFields` 用于单个输入的函数，如 Map 和 Reduce。
+* `@ForwardedFieldsFirst` 用于具有两个输入的函数的第一个输入 如 Join 和 CoGroup。
+* `@ForwardedFieldsSecond` 用于具有两个输入的函数的第二个输入 如 Join 和 CoGroup。
 
-##### Operator Arguments
+##### Operator 参数
 
-* `data.map(myMapFnc).withForwardedFields()` for single input function such as Map and Reduce.
-* `data1.join(data2).where().equalTo().with(myJoinFnc).withForwardFieldsFirst()` for the first input of a function with two inputs such as Join and CoGroup.
-* `data1.join(data2).where().equalTo().with(myJoinFnc).withForwardFieldsSecond()` for the second input of a function with two inputs such as Join and CoGroup.
+* `data.map(myMapFnc).withForwardedFields()` 用于单个输入的函数，如 Map 和 Reduce。
+* `data1.join(data2).where().equalTo().with(myJoinFnc).withForwardFieldsFirst()` 用于具有两个输入的函数的第一个输入 如 Join 和 CoGroup。
+* `data1.join(data2).where().equalTo().with(myJoinFnc).withForwardFieldsSecond()` 用于具有两个输入的函数的第二个输入 如 Join 和 CoGroup。
 
-Please note that it is not possible to overwrite field forward information which was specified as a class annotation by operator arguments.
+请注意，无法通过 operator 参数覆盖类注解的字段转发信息。
 
-##### Example
+##### 示例
 
-The following example shows how to declare forwarded field information using a function class annotation:
+以下示例显示如何使用函数类注解声明转发的字段信息：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1846,30 +1754,28 @@ class MyMap extends MapFunction[(Int, Int), (String, Int, Int)]{
 </div>
 </div>
 
-#### Non-Forwarded Fields
+#### 非转发字段
 
-Non-forwarded fields information declares all fields which are not preserved on the same position in a function's output.
-The values of all other fields are considered to be preserved at the same position in the output.
-Hence, non-forwarded fields information is inverse to forwarded fields information.
-Non-forwarded field information for group-wise operators such as `GroupReduce`, `GroupCombine`, `CoGroup`, and `MapPartition` must fulfill the same requirements as for forwarded field information.
 
-**IMPORTANT**: The specification of non-forwarded fields information is optional. However if used,
-**ALL!** non-forwarded fields must be specified, because all other fields are considered to be forwarded in place. It is safe to declare a forwarded field as non-forwarded.
+非转发字段信息声明了不保存在函数输出中相同位置的所有字段。那么其他字段的值被认为保存在输出中的相同位置。因此，非转发字段信息与转发字段信息相反。
+组合运算符（如GroupReduce，GroupCombine，CoGroup和MapPartition）的未转发字段信息必须满足与转发字段信息相同的要求。
 
-Non-forwarded fields are specified as a list of [field expressions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions). The list can be either given as a single String with field expressions separated by semicolons or as multiple Strings.
-For example both `"f1; f3"` and `"f1", "f3"` declare that the second and fourth field of a Java tuple
-are not preserved in place and all other fields are preserved in place.
-Non-forwarded field information can only be specified for functions which have identical input and output types.
+**IMPORTANT**: 非转发字段信息的规范是可选的。但是，一旦使用，
+**ALL!** 必须指定非转发字段，因为所有其他字段都被认为是就地转发的。将转发字段声明为未转发是安全的。
 
-Non-forwarded field information is specified as function class annotations using the following annotations:
+未转发的字段被指定为[字段表达式]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions)的列表。
+该列表可以作为单个字符串提供(字段表达式用分号分隔)或作为多个字符串。例如，“f1; f3”和“f1”,“f3”都声明Java元组的第二个和第四个字段没有保留在原位，
+而其他字段都保留在原位。只能为具有相同输入和输出类型的函数指定非转发字段信息。
 
-* `@NonForwardedFields` for single input functions such as Map and Reduce.
-* `@NonForwardedFieldsFirst` for the first input of a function with two inputs such as Join and CoGroup.
-* `@NonForwardedFieldsSecond` for the second input of a function with two inputs such as Join and CoGroup.
+使用以下注解将未转发字段信息指定为函数类注解：
 
-##### Example
+* `@NonForwardedFields` 用于单个输入的函数，如 Map 和 Reduce。
+* `@NonForwardedFieldsFirst` 用于具有两个输入的函数的第一个输入 如 Join 和 CoGroup。
+* `@NonForwardedFieldsSecond` 用于具有两个输入的函数的第二个输入 如 Join 和 CoGroup。
 
-The following example shows how to declare non-forwarded field information:
+##### 示例
+
+以下示例显示如何声明未转发的字段信息：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1897,28 +1803,28 @@ class MyMap extends MapFunction[(Int, Int), (Int, Int)]{
 </div>
 </div>
 
-#### Read Fields
+#### 读取字段
 
-Read fields information declares all fields that are accessed and evaluated by a function, i.e.,
-all fields that are used by the function to compute its result.
-For example, fields which are evaluated in conditional statements or used for computations must be marked as read when specifying read fields information.
-Fields which are only unmodified forwarded to the output without evaluating their values or fields which are not accessed at all are not considered to be read.
+读取字段信息声明由函数访问和评估的所有字段，即由函数用来计算其结果的所有字段。
+例如，在指定读取字段信息时，在条件语句中计算或用于计算的字段必须标记为read。
+只有未经修改转发给输出而未评估其值或不能被访问的字段不会被读取。
 
-**IMPORTANT**: The specification of read fields information is optional. However if used,
-**ALL!** read fields must be specified. It is safe to declare a non-read field as read.
+**IMPORTANT**: 读取字段信息的指定是可选的。但是，一旦使用，
+**ALL!** 读取字段必须被指。将非读取字段声明为已读是安全的。
 
-Read fields are specified as a list of [field expressions]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions). The list can be either given as a single String with field expressions separated by semicolons or as multiple Strings.
-For example both `"f1; f3"` and `"f1", "f3"` declare that the second and fourth field of a Java tuple are read and evaluated by the function.
+读字段被指定为 [字段表达式]({{ site.baseurl }}/dev/api_concepts.html#define-keys-using-field-expressions)的列表。
+该列表可以作为单个字符串提供(字段表达式用分号分隔)或作为多个字符串。
+例如，“f1; f3”和“f1”,“f3”声明Java 元祖的第二个和第四个字段被读取和评估。
 
-Read field information is specified as function class annotations using the following annotations:
+使用以下注解将读取字段信息指定为函数类注解：
 
-* `@ReadFields` for single input functions such as Map and Reduce.
-* `@ReadFieldsFirst` for the first input of a function with two inputs such as Join and CoGroup.
-* `@ReadFieldsSecond` for the second input of a function with two inputs such as Join and CoGroup.
+* `@ReadFields` 用于单个输入的函数，如 Map 和 Reduce。
+* `@ReadFieldsFirst` 用于具有两个输入的函数的第一个输入 如 Join 和 CoGroup。
+* `@ReadFieldsSecond` 用于具有两个输入的函数的第二个输入 如 Join 和 CoGroup。
 
-##### Example
+##### 示例
 
-The following example shows how to declare read field information:
+以下示例显示如何声明读取字段信息：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1958,16 +1864,14 @@ class MyMap extends MapFunction[(Int, Int, Int, Int), (Int, Int)]{
 {% top %}
 
 
-Broadcast Variables
+广播变量
 -------------------
 
-Broadcast variables allow you to make a data set available to all parallel instances of an
-operation, in addition to the regular input of the operation. This is useful for auxiliary data
-sets, or data-dependent parameterization. The data set will then be accessible at the operator as a
-Collection.
+除了作为operator 的 常规输入外，广播变量还允许您为一个operator所有并行实例创建一个可靠的数据集。
+这对辅助数据集或数据相关参数化非常有用。数据集将作为集合在operator处被访问。
 
-- **Broadcast**: broadcast sets are registered by name via `withBroadcastSet(DataSet, String)`, and
-- **Access**: accessible via `getRuntimeContext().getBroadcastVariable(String)` at the target operator.
+- **Broadcast**: 广播集是使用名称通过withBroadcastSet(DataSet,String)注册
+- **Access**: 广播变量在目标 operator中通过 `getRuntimeContext().getBroadcastVariable(String)`访问。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1992,9 +1896,8 @@ data.map(new RichMapFunction<String, String>() {
 }).withBroadcastSet(toBroadcast, "broadcastSetName"); // 2. Broadcast the DataSet
 {% endhighlight %}
 
-Make sure that the names (`broadcastSetName` in the previous example) match when registering and
-accessing broadcast data sets. For a complete example program, have a look at
-{% gh_link /flink-examples/flink-examples-batch/src/main/java/org/apache/flink/examples/java/clustering/KMeans.java "K-Means Algorithm" %}.
+确保在注册和访问广播数据集时，名称（前一示例中的broadcastSetName）匹配。
+有关完整的示例程序，请查看{% gh_link /flink-examples/flink-examples-batch/src/main/java/org/apache/flink/examples/java/clustering/KMeans.java "K-Means算法" %}。
 </div>
 <div data-lang="scala" markdown="1">
 
@@ -2018,31 +1921,29 @@ data.map(new RichMapFunction[String, String]() {
 }).withBroadcastSet(toBroadcast, "broadcastSetName") // 2. Broadcast the DataSet
 {% endhighlight %}
 
-Make sure that the names (`broadcastSetName` in the previous example) match when registering and
-accessing broadcast data sets. For a complete example program, have a look at
-{% gh_link /flink-examples/flink-examples-batch/src/main/scala/org/apache/flink/examples/scala/clustering/KMeans.scala "KMeans Algorithm" %}.
+确保在注册和访问广播数据集时，名称（前一示例中的broadcastSetName）匹配。
+有关完整的示例程序，请查看{% gh_link /flink-examples/flink-examples-batch/src/main/java/org/apache/flink/examples/java/clustering/KMeans.java "K-Means算法" %}。
 </div>
 </div>
 
-**Note**: As the content of broadcast variables is kept in-memory on each node, it should not become
-too large. For simpler things like scalar values you can simply make parameters part of the closure
-of a function, or use the `withParameters(...)` method to pass in a configuration.
+**Note**: 由于广播变量的内容保存在每个节点的内存中，因此它不应该太大。
+对于标量值等简单的事情，您可以简单地将参数作为函数闭包的一部分，或使用withParameters(...)方法传入配置。
 
 {% top %}
 
-Distributed Cache
+分布式缓存
 -------------------
 
-Flink offers a distributed cache, similar to Apache Hadoop, to make files locally accessible to parallel instances of user functions. This functionality can be used to share files that contain static external data such as dictionaries or machine-learned regression models.
+Flink提供了一个类似于Apache Hadoop的分布式缓存，使用户函数的并行实例可以在本地访问文件。该功能可用于共享包含静态外部数据的文件，例如字典或机器学习回归模型。
 
-The cache works as follows. A program registers a file or directory of a [local or remote filesystem such as HDFS or S3]({{ site.baseurl }}/dev/batch/connectors.html#reading-from-file-systems) under a specific name in its `ExecutionEnvironment` as a cached file. When the program is executed, Flink automatically copies the file or directory to the local filesystem of all workers. A user function can look up the file or directory under the specified name and access it from the worker's local filesystem.
+缓存工作如下。程序在ExecutionEnvironment中以特定名称将[本地或远程文件系统（如HDFS或S3）]({{ site.baseurl }}/dev/batch/connectors.html#reading-from-file-systems)的文件或目录注册为缓存文件。当程序执行时，Flink自动将文件或目录复制到所有 worker 节点的本地文件系统。 用户函数可以在指定名称下查找文件或目录，并可从 worker 节点的本地文件系统访问它。
 
-The distributed cache is used as follows:
+分布式缓存使用如下：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
 
-Register the file or directory in the `ExecutionEnvironment`.
+在ExecutionEnvironment中注册文件或目录。
 
 {% highlight java %}
 ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
@@ -2061,7 +1962,7 @@ DataSet<Integer> result = input.map(new MyMapper());
 env.execute();
 {% endhighlight %}
 
-Access the cached file or directory in a user function (here a `MapFunction`). The function must extend a [RichFunction]({{ site.baseurl }}/dev/api_concepts.html#rich-functions) class because it needs access to the `RuntimeContext`.
+访问用户函数中的缓存文件或目录（这里是一个MapFunction）。该函数必须扩展一个[RichFunction]({{ site.baseurl }}/dev/api_concepts.html#rich-functions)类，因为它需要访问RuntimeContext。
 
 {% highlight java %}
 
@@ -2088,7 +1989,7 @@ public final class MyMapper extends RichMapFunction<String, Integer> {
 </div>
 <div data-lang="scala" markdown="1">
 
-Register the file or directory in the `ExecutionEnvironment`.
+在ExecutionEnvironment中注册文件或目录。
 
 {% highlight scala %}
 val env = ExecutionEnvironment.getExecutionEnvironment
@@ -2107,7 +2008,7 @@ val result: DataSet[Integer] = input.map(new MyMapper())
 env.execute()
 {% endhighlight %}
 
-Access the cached file in a user function (here a `MapFunction`). The function must extend a [RichFunction]({{ site.baseurl }}/dev/api_concepts.html#rich-functions) class because it needs access to the `RuntimeContext`.
+访问用户函数中的缓存文件或目录（这里是一个MapFunction）。该函数必须扩展一个[RichFunction]({{ site.baseurl }}/dev/api_concepts.html#rich-functions)类，因为它需要访问RuntimeContext。
 
 {% highlight scala %}
 
@@ -2134,14 +2035,14 @@ class MyMapper extends RichMapFunction[String, Int] {
 
 {% top %}
 
-Passing Parameters to Functions
+将参数传递给函数
 -------------------
 
-Parameters can be passed to functions using either the constructor or the `withParameters(Configuration)` method. The parameters are serialized as part of the function object and shipped to all parallel task instances.
+可以使用构造函数或withParameters(Configuration)方法将参数传递给函数。参数被序列化为函数对象的一部分，并发送到所有并行任务实例。
 
-Check also the [best practices guide on how to pass command line arguments to functions]({{ site.baseurl }}/dev/best_practices.html#parsing-command-line-arguments-and-passing-them-around-in-your-flink-application).
+请查看[如何将命令行参数传递给函数的最佳实践指南]({{ site.baseurl }}/dev/best_practices.html#parsing-command-line-arguments-and-passing-them-around-in-your-flink-application)。
 
-#### Via Constructor
+#### 通过构造函数
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2180,10 +2081,10 @@ class MyFilter(limit: Int) extends FilterFunction[Int] {
 </div>
 </div>
 
-#### Via `withParameters(Configuration)`
+####  通过`withParameters(Configuration)`
 
-This method takes a Configuration object as an argument, which will be passed to the [rich function]({{ site.baseurl }}/dev/api_concepts.html#rich-functions)'s `open()`
-method. The Configuration object is a Map from String keys to different value types.
+这个方法接受一个Configuration对象作为参数，它将被传递给RichFunction的open（）方法。Configuration 对象是从字符串键到不同值类型的映射。
+
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2230,12 +2131,12 @@ toFilter.filter(new RichFilterFunction[Int]() {
 </div>
 </div>
 
-#### Globally via the `ExecutionConfig`
+#### 通过全局的`ExecutionConfig`
 
-Flink also allows to pass custom configuration values to the `ExecutionConfig` interface of the environment. Since the execution config is accessible in all (rich) user functions, the custom configuration will be available globally in all functions.
+Flink还允许将自定义的配置值传递到environment的ExecutionConfig接口。由于可以在所有（rich）用户函数中访问配置，因此自定义配置将在所有函数中全局可用。
 
 
-**Setting a custom global configuration**
+**设置自定义全局配置**
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2257,12 +2158,12 @@ env.getConfig.setGlobalJobParameters(conf)
 </div>
 </div>
 
-Please note that you can also pass a custom class extending the `ExecutionConfig.GlobalJobParameters` class as the global job parameters to the execution config. The interface allows to implement the `Map<String, String> toMap()` method which will in turn show the values from the configuration in the web frontend.
+请注意，您也可以自定义一个类(继承ExecutionConfig.GlobalJobParameters类)作为全局作业参数传递到执行配置。该接口允许实现 Map<String, String> toMap() 方法，在Web前端该方法将依次显示中配置的值。
 
 
-**Accessing values from the global configuration**
+**从全局配置访问值**
 
-Objects in the global job parameters are accessible in many places in the system. All user functions implementing a `RichFunction` interface have access through the runtime context.
+全局作业参数中的对象可以在系统中的许多地方访问。所有实现“RichFunction”接口的用户函数都可以通过运行时上下文进行访问。
 
 {% highlight java %}
 public static final class Tokenizer extends RichFlatMapFunction<String, Tuple2<String, Integer>> {
