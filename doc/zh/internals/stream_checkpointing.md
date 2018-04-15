@@ -1,9 +1,12 @@
 ---
-title:  "Data Streaming Fault Tolerance"
+
+title:  "Data Streaming 容错"
 nav-title: Fault Tolerance for Data Streaming
 nav-parent_id: internals
 nav-pos: 3
+
 ---
+
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,151 +26,120 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-This document describes Flink's fault tolerance mechanism for streaming data flows.
+该文档描述了Flink的流式数据流的容错机制。
 
 * This will be replaced by the TOC
 {:toc}
 
 
-## Introduction
+## 介绍
 
-Apache Flink offers a fault tolerance mechanism to consistently recover the state of data streaming applications.
-The mechanism ensures that even in the presence of failures, the program's state will eventually reflect every
-record from the data stream **exactly once**. Note that there is a switch to *downgrade* the guarantees to *at least once*
-(described below).
+Apache Flink提供了一个容错机制来统一恢复流失应用的状态。
+这种机制保证了当故障发生时，data stream的每一行记录只会作用于状态一次**exactly once**。注意，flink提供了一个开关可以将作用一次*降级*成*至少一次*
 
-The fault tolerance mechanism continuously draws snapshots of the distributed streaming data flow. For streaming applications
-with small state, these snapshots are very light-weight and can be drawn frequently without much impact on performance.
-The state of the streaming applications is stored at a configurable place (such as the master node, or HDFS).
 
-In case of a program failure (due to machine-, network-, or software failure), Flink stops the distributed streaming dataflow.
-The system then restarts the operators and resets them to the latest successful checkpoint. The input streams are reset to the
-point of the state snapshot. Any records that are processed as part of the restarted parallel dataflow are guaranteed to not
-have been part of the previously checkpointed state.
+这种容错机制为流失数据流连续不断的生成快照。对于状态很小（占用空间，时间等）的流式应用，这些快照需要非常的轻量,并且可以频繁生成，不会对程序有太大的性能影响。这些流式应用的状态被存储在某个可配置的地方（比如主节点或者hdfs)。
 
-*Note:* By default, checkpointing is disabled. See [Checkpointing]({{ site.baseurl }}/dev/stream/state/checkpointing.html) for details on how to enable and configure checkpointing.
+在程序失败的情况下(由于机器、网络、软件等原因),flink停止分布式流式数据。而后系统会重启所有operator，并将状态重置到最后一次成功的检查点。输入流任务被重置到该快照对应的检查点状态。在重启过程中任何并行处理的流数据任务中的数据，都保证不是上一个检查点数据的一部分。
 
-*Note:* For this mechanism to realize its full guarantees, the data stream source (such as message queue or broker) needs to be able
-to rewind the stream to a defined recent point. [Apache Kafka](http://kafka.apache.org) has this ability and Flink's connector to
-Kafka exploits this ability. See [Fault Tolerance Guarantees of Data Sources and Sinks]({{ site.baseurl }}/dev/connectors/guarantees.html) for
-more information about the guarantees provided by Flink's connectors.
+*Note:* 默认情况下，检查点是不开启的。查看 [Checkpointing]({{ site.baseurl }}/dev/stream/state/checkpointing.html) 来详细了解如何使用检查点配置。
 
-*Note:* Because Flink's checkpoints are realized through distributed snapshots, we use the words *snapshot* and *checkpoint* interchangeably.
+*Note:* 为了完全保证这种机制实现，源数据流（例如消息队列）需要实现倒退到不久前声明的点。 [Apache Kafka](http://kafka.apache.org) 有这个功能，Flink的kafka connector 使用了这个功能。看[Fault Tolerance Guarantees of Data Sources and Sinks]({{ site.baseurl }}/dev/connectors/guarantees.html) 来了解更多信息，关于Flink's connectors 是如何提供保证的。
+
+* Note:* 因为flink的检查点是通过分布式快照实现的，我们会交换使用*snapshot(快照)*和*checkpoint(检查点)* 。
 
 
 ## Checkpointing
 
-The central part of Flink's fault tolerance mechanism is drawing consistent snapshots of the distributed data stream and operator state.
-These snapshots act as consistent checkpoints to which the system can fall back in case of a failure. Flink's mechanism for drawing these
-snapshots is described in "[Lightweight Asynchronous Snapshots for Distributed Dataflows](http://arxiv.org/abs/1506.08603)". It is inspired by
-the standard [Chandy-Lamport algorithm](http://research.microsoft.com/en-us/um/people/lamport/pubs/chandy.pdf) for distributed snapshots and is
-specifically tailored to Flink's execution model.
+Flink容错机制的核心部分是绘制持续的快照和分布式流数据的操作状态。这些快照充当统一的检查点，当发生故障的时候可以根据检查点回退。Flink的快照机制论文在这里"[Lightweight Asynchronous Snapshots for Distributed Dataflows](http://arxiv.org/abs/1506.08603)".它的灵感来自于分布式快照标准[Chandy-Lamport algorithm](http://research.microsoft.com/en-us/um/people/lamport/pubs/chandy.pdf),checkpointing是为flink的执行模式特别订制的。
 
 
 
 ### Barriers
 
-A core element in Flink's distributed snapshotting are the *stream barriers*. These barriers are injected into the data stream and flow
-with the records as part of the data stream. Barriers never overtake records, the flow strictly in line.
-A barrier separates the records in the data stream into the set of records that goes into the
-current snapshot, and the records that go into the next snapshot. Each barrier carries the ID of the snapshot whose records it pushed in front
-of it. Barriers do not interrupt the flow of the stream and are hence very lightweight. Multiple barriers from different snapshots can be in
-the stream at the same time, which means that various snapshots may happen concurrently.
+flink分布式快照的一个核心元素是*stream barriers*.这些barriers被注入到流式数据的每一行任务处理中。Barriers绝对不会赶超数据，数据流严格有序。一个barrier会拆分数据,一部分数据被放到当前正则处理的快照中，另一部分在下一个快照中。每一个快照都有对应的快照id，以标记在这个Barrier之前的数据要存放到哪个快照中。Barriers不会干扰流失数据任务，Barriers非常轻量。同一时间内，可以有多个来自不同快照的Barriers，这意味着可能有多个快照并发生成。
 
 <div style="text-align: center">
   <img src="{{ site.baseurl }}/fig/stream_barriers.svg" alt="Checkpoint barriers in data streams" style="width:60%; padding-top:10px; padding-bottom:10px;" />
 </div>
 
-Stream barriers are injected into the parallel data flow at the stream sources. The point where the barriers for snapshot *n* are injected
-(let's call it <i>S<sub>n</sub></i>) is the position in the source stream up to which the snapshot covers the data. For example, in Apache Kafka, this
-position would be the last record's offset in the partition. This position <i>S<sub>n</sub></i> is reported to the *checkpoint coordinator* (Flink's JobManager).
+流式Barriers在数据源端被注入到平行的流任务中。当快照的barriers *n*被注入到流数据的任务中(我们称呼为<i>S<sub>n</sub></i>)。举例，在Apache kafka，这个位置可以是在对应partition中最近一次消费记录的offset(位置偏移量)。这个位置<i>S<sub>n</sub></i>被报告给了*checkpoint coordinator* (Flink's JobManager).
 
-The barriers then flow downstream. When an intermediate operator has received a barrier for snapshot *n* from all of its input streams, it emits a barrier
-for snapshot *n* into all of its outgoing streams. Once a sink operator (the end of a streaming DAG) has received the barrier *n* from all of its
-input streams, it acknowledges that snapshot *n* to the checkpoint coordinator. After all sinks have acknowledged a snapshot, it is considered completed.
+Barriers会继续流向下游。当一个中间的operator接受到所有来自它上流的快照*n*的barrier时，它会发出一个表示快照 *n* 的barriers给它的下流。一旦一个sink operator(流任务DAG图最后一位同学)接受到所有来自它上游的barrier *n* ，它会向heckpoint coordinator告知快照 *n* 已完成。当所有sink都告知了一个快照的时候，这个快照被标记为完成。
 
-Once snapshot *n* has been completed, the job will never again ask the source for records from before <i>S<sub>n</sub></i>, since at that point these records (and
-their descendant records) will have passed through the entire data flow topology.
+一旦快照*n*完成后，这个任务就再也不会去访问<i>S<sub>n</sub></i>之前的数据源，自这个点之后的记录(他们的后代记录) 都将会通过整个数据流拓扑。
 
 <div style="text-align: center">
   <img src="{{ site.baseurl }}/fig/stream_aligning.svg" alt="Aligning data streams at operators with multiple inputs" style="width:100%; padding-top:10px; padding-bottom:10px;" />
 </div>
 
-Operators that receive more than one input stream need to *align* the input streams on the snapshot barriers. The figure above illustrates this:
+当Operators接收超过一个输入流的时候,需要基于输入流快照的barriers对齐*align*.如上图表所示:
 
-  - As soon as the operator receives snapshot barrier *n* from an incoming stream, it cannot process any further records from that stream until it has received
-the barrier *n* from the other inputs as well. Otherwise, it would mix records that belong to snapshot *n* and with records that belong to snapshot *n+1*.
-  - Streams that report barrier *n* are temporarily set aside. Records that are received from these streams are not processed, but put into an input buffer.
-  - Once the last stream has received barrier *n*, the operator emits all pending outgoing records, and then emits snapshot *n* barriers itself.
-  - After that, it resumes processing records from all input streams, processing records from the input buffers before processing the records from the streams.
+ - 当operator接收到一个来自输入流的快照barrier *n* ,它就不能继续处理这个输入流后续的数据，直到operator接收到其他数据流的barrier *n*.这可以避免快照*n*的数据和快照*n+1*的数据搞混。
+ - 报告了Barrier *n* 的数据流暂时被搁置到一遍。这些数据流里接受的数据没有被处理，而是放到了一个输入buffer中。
+ - 当从最后一个流中拿到barrier *n*是，这个operator发送出所有计划给下游处理的数据，然后发送snapshot *n* barriers自己,完成barriers的对齐
+ - 在这之后,它会恢复所有输入流中处理的数据，输入缓存中的数据会在数据流其他数据前处理。
+
+### 状态
+
+当operators包含任意形式的*state*（状态）,这状态必需是包含在snapshots中，作为snapshots的一部分。operator 有以下形式的状态:
+
+  - *User-defined state*: 这种状态是直接由转换函数(transformation functions，例如`map()`或者`filter()`等)创建或修改的。详情查看[Streaming Applications中的状态]({{ site.baseurl }}/dev/stream/state/index.html)
+
+  - *System state*: 这种状态适用于operator计算缓存中的那部分数据。这种状态的一个典型例子窗口缓存(*window buffers*),系统为窗口聚合和收集数剧直到窗口计算完成和释放。
 
 
-### State
+当Operators在收到了所有输入流的barriers这个点的时候，并且在他们Operatirs发送barriers给输出流之前，这个快照状态的时候。在此时所有记录的状态被更新完成，没有更新需要依赖于这个barrier之后被应用的数据。由于快照的状态可能非常大,所以快照可以配置存储*[state backend]({{ site.baseurl }}/ops/state/state_backends.html)* 默认情况下，快村存储在JobManager的内存中，但是生产环节下需要配置高可靠的分布式存储(比如hdfs).当状态被存储之后，当状态被存储之后，operatior会确认checkpoint，发送快照barrier给后续处理的输出流。
 
-When operators contain any form of *state*, this state must be part of the snapshots as well. Operator state comes in different forms:
-
-  - *User-defined state*: This is state that is created and modified directly by the transformation functions (like `map()` or `filter()`). See [State in Streaming Applications]({{ site.baseurl }}/dev/stream/state/index.html) for details.
-  - *System state*: This state refers to data buffers that are part of the operator's computation. A typical example for this state are the *window buffers*, inside which the system collects (and aggregates) records for windows until the window is evaluated and evicted.
-
-Operators snapshot their state at the point in time when they have received all snapshot barriers from their input streams, and before emitting the barriers to their output streams. At that point, all updates to the state from records before the barriers will have been made, and no updates that depend on records from after the barriers have been applied. Because the state of a snapshot may be large, it is stored in a configurable *[state backend]({{ site.baseurl }}/ops/state/state_backends.html)*. By default, this is the JobManager's memory, but for production use a distributed reliable storage should be configured (such as HDFS). After the state has been stored, the operator acknowledges the checkpoint, emits the snapshot barrier into the output streams, and proceeds.
-
-The resulting snapshot now contains:
-
-  - For each parallel stream data source, the offset/position in the stream when the snapshot was started
-  - For each operator, a pointer to the state that was stored as part of the snapshot
+生成的快照现在包含了:
+  - 对于每个并行处理的数据流，当快照开始时的位置偏移量
+  - 对于每个operator, 一个指向状态的指针，作为快照的一部分存储起来。
 
 <div style="text-align: center">
   <img src="{{ site.baseurl }}/fig/checkpointing.svg" alt="Illustration of the Checkpointing Mechanism" style="width:100%; padding-top:10px; padding-bottom:10px;" />
 </div>
 
 
-### Exactly Once vs. At Least Once
+### 恰好一次(Exactly Once) VS 至少一次(At Least Once)
 
-The alignment step may add latency to the streaming program. Usually, this extra latency is on the order of a few milliseconds, but we have seen cases where the latency
-of some outliers increased noticeably. For applications that require consistently super low latencies (few milliseconds) for all records, Flink has a switch to skip the
-stream alignment during a checkpoint. Checkpoint snapshots are still drawn as soon as an operator has seen the checkpoint barrier from each input.
-
-When the alignment is skipped, an operator keeps processing all inputs, even after some checkpoint barriers for checkpoint *n* arrived. That way, the operator also processes
-elements that belong to checkpoint *n+1* before the state snapshot for checkpoint *n* was taken.
-On a restore, these records will occur as duplicates, because they are both included in the state snapshot of checkpoint *n*, and will be replayed as part
-of the data after checkpoint *n*.
-
-*NOTE*: Alignment happens only for operators with multiple predecessors (joins) as well as operators with multiple senders (after a stream repartitioning/shuffle).
-Because of that, dataflows with only embarrassingly parallel streaming operations (`map()`, `flatMap()`, `filter()`, ...) actually give *exactly once* guarantees even
-in *at least once* mode.
+多个输入流的对齐操作可能会导致流程序延迟。通常情况下，这种额外的延迟大约在几毫秒内完成，但是也能看到一些额外的特例明显超过了这个时间。对于所有数据需要都是超低延迟（几毫秒）的应用，flink提供了一个开关来跳过checkpoint期间的流对齐操作。关闭对齐操作后，当一个operator收到每个检查点输入barrier的时候，就立即生成检查点快照。
 
 
-### Asynchronous State Snapshots
+当对齐操作被跳过，一个operator依然会处理所有的输入，尽管部分检查点的barriers 在对应的checkpoint *n* 之后，在这种情况下，operator 会继续处理属于checkpoint *n+1* 的数据,这个时候checkpoint *n* 可能还没有生成完成快照状态。当状态恢复的时候，就会出现一部分数据因为重复而冲突，因为这些数据存储在checkpoint *n* 中，这些数据会被当成checkpoint *n*的数据重复执行(此时checkpoint *n*的状态尚未被确认为全部完成，只能重复消费)。
 
-Note that the above described mechanism implies that operators stop processing input records while they are storing a snapshot of their state in the *state backend*. This *synchronous* state snapshot introduces a delay every time a snapshot is taken.
-
-It is possible to let an operator continue processing while it stores its state snapshot, effectively letting the state snapshots happen *asynchronously* in the background. To do that, the operator must be able to produce a state object that should be stored in a way such that further modifications to the operator state do not affect that state object. For example, *copy-on-write* data structures, such as are used in RocksDB, have this behavior.
-
-After receiving the checkpoint barriers on its inputs, the operator starts the asynchronous snapshot copying of its state. It immediately emits the barrier to its outputs and continues with the regular stream processing. Once the background copy process has completed, it acknowledges the checkpoint to the checkpoint coordinator (the JobManager). The checkpoint is now only complete after all sinks have received the barriers and all stateful operators have acknowledged their completed backup (which may be after the barriers reach the sinks).
-
-See [State Backends]({{ site.baseurl }}/ops/state/state_backends.html) for details on the state snapshots.
+*NOTE*: 对齐操作只会发生在有多个上游operator(joins) 和多个下流operator 输出的时候(流计算的repartitioning/shuffle).因此，并行流计算的一些操作 (`map()`, `flatMap()`, `filter()`, ...) 事实上总是会被赋予 *eactly once*(执行一次)，哪怕给他们配置了 *at least once * 模式。
 
 
-## Recovery
 
-Recovery under this mechanism is straightforward: Upon a failure, Flink selects the latest completed checkpoint *k*. The system then re-deploys the
-entire distributed dataflow, and gives each operator the state that was snapshotted as part of checkpoint *k*. The sources are set to start reading the
-stream from position <i>S<sub>k</sub></i>. For example in Apache Kafka, that means telling the consumer to start fetching from offset <i>S<sub>k</sub></i>.
+### 异步快照状态
 
-If state was snapshotted incrementally, the operators start with the state of the latest full snapshot and then apply a series of incremental snapshot updates to that state.
+上面描述的机制，意味着operators将会停止处理数据，当他们正在存储一个快照状态的时候。 这种同步状态快照会在每次生成快照的时候带来延迟。
 
-See [Restart Strategies]({{ site.baseurl }}/dev/restart_strategies.html) for more information.
+当创建快照的时候让operator继续处理数据是可行的，也就是让快照状态在后台异步生成。为了做到这个，operator必需能够生产一个状态对象，这个对象需要被某种方法存储起来，并且不被后续的操作影响。举个例子，*copy-on-write*数据结构,比如使用RocksDB，可以达到这个功能。
 
-## Operator Snapshot Implementation
+在operator收到所有输入的checkpoint barriers后，这个operator开始异步拷贝快照的状态。operator 立刻发出 barrier给它的下游输出，并继续进行流处理。一旦后台完成了这个拷贝操作，它会向 jobManager的checkpoint coordinator确认这个checkpoint.这个checkpoint 需要在后面动作之后完成:所有的sinks 收到了barriers和所有的状态在后台被告知完成(这个动作可能比sink接收到barriers晚).
 
-When operator snapshots are taken, there are two parts: the **synchronous** and the **asynchronous** parts.
+查看[State Backends]({{ site.baseurl }}/ops/state/state_backends.html) 了解快照状态详细。
 
-Operators and state backends provide their snapshots as a Java `FutureTask`. That task contains the state where the *synchronous* part
-is completed and the *asynchronous* part is pending. The asynchronous part is then executed by a background thread for that checkpoint.
 
-Operators that checkpoint purely synchronously return an already completed `FutureTask`.
-If an asynchronous operation needs to be performed, it is executed in the `run()` method of that `FutureTask`.
+## 恢复
 
-The tasks are cancelable, so that streams and other resource consuming handles can be released.
+这种机制下的错误恢复很简单: 在遇到一个故障的时候,flink 选择最近完成的checkpont *k* 。系统会重新部署整个分部署流处理，并把每个operator的状态设置到checkpoint *k* 对应的状态。这个数据源的起始读位置被设置为<i>S<sub>k</sub></i>。 例如在apache kafka中，这意味着消费者开始的偏移位置为<i>S<sub>k</sub></i>.
+
+如果这个快照是增量的，这时候operators开始的状态是，从最后一个快照开始进行全量恢复，然后对这个状态进行一系列的增量快照更新。
+
+查看[Restart Strategies]({{ site.baseurl }}/dev/restart_strategies.html)  获得更多信息
+
+
+## Operator 快照实现
+
+当Operator 快照创建时，这有两部分: **同布**和**异步**.
+
+Operators和state backends 使用 Java `FutureTask`生成他们的快照。这个任务包含了快照的同步部分 和异步部分的计划。检查点的异步部分在这之后被一个后台线程执行。
+
+Operators checkpoint同步的操作完成时候会返回一个`FutureTask`。如果一个异步操作需要被执行，他会在`FutrueTask`的`run()`方法中运行。
+
+为了流和其他的资源开销可以被释放，这些任务是可以被取消的，。
+
 
 {% top %}
