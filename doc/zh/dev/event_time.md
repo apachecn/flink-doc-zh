@@ -145,7 +145,7 @@ stream
 ------
 
 Flink中测量事件时间进度的机制是**水印(watermarks)**。
-水印作为数据流的一部分流动并带有时间戳*t*。
+水印作为数据流的一部分流动并带有时间戳 *t*。
 *Watermark(t)* 声明了事件时间到达流中的时间 *t*，这意味着流中不应该带有时间戳 *t' <= t* 的元素
 （即事件的时间戳早于或等于水印的时间戳）。
 
@@ -165,38 +165,35 @@ Flink中测量事件时间进度的机制是**水印(watermarks)**。
 
 ## 并行流中的水印
 
-Watermarks are generated at, or directly after, source functions. Each parallel subtask of a source function usually
-generates its watermarks independently. These watermarks define the event time at that particular parallel source.
+水印在源函数处或之后直接生成。
+源函数的每个并行子任务通常独立生成其水印。
+这些水印定义了特定并行源的事件时间。
 
-As the watermarks flow through the streaming program, they advance the event time at the operators where they arrive. Whenever an
-operator advances its event time, it generates a new watermark downstream for its successor operators.
+随着水印在流程序流过，他们会在他们到达的算子时提前事件时间。 
+每当算子提前发布事件时，它就会为其后续算子的下游生成一个新的水印。
 
-Some operators consume multiple input streams; a union, for example, or operators following a *keyBy(...)* or *partition(...)* function.
-Such an operator's current event time is the minimum of its input streams' event times. As its input streams
-update their event times, so does the operator.
+一些算子消费多个输入流;例如union,或者算子遵循了*keyBy(...)* 或 *partition(...)* 函数。
+这种算子的当前事件时间是其输入流事件时间的最小值。
+随着其输入流更新他们的事件时间，算子也会进行更新。
 
-The figure below shows an example of events and watermarks flowing through parallel streams, and operators tracking event time.
+下图展示了流经并行流的事件和水印，以及算子跟踪事件时间的示例。
 
 <img src="{{ site.baseurl }}/fig/parallel_streams_watermarks.svg" alt="Parallel data streams and operators with events and watermarks" class="center" width="80%" />
 
 
-## Late Elements
+## 延迟元素
 
-It is possible that certain elements will violate the watermark condition, meaning that even after the *Watermark(t)* has occurred,
-more elements with timestamp *t' <= t* will occur. In fact, in many real world setups, certain elements can be arbitrarily
-delayed, making it impossible to specify a time by which all elements of a certain event timestamp will have occurred.
-Furthermore, even if the lateness can be bounded, delaying the watermarks by too much is often not desirable, because it
-causes too much delay in the evaluation of the event time windows.
+某些元素可能会违反水印条件，这意味着即使在Watermark(t)出现之后，也会出现更多具有时间戳 *t'<= t* 的元素。
+事实上，在许多现实世界的设置中，某些元素可能会被任意延迟，从而无法指定某个事件时间戳的所有元素将要发生的时间。
+此外，即使延迟可能是有界的，延迟过多的水印通常也是不理想的，因为它在事件时间窗口的评估中引起太多延迟。
 
-For this reason, streaming programs may explicitly expect some *late* elements. Late elements are elements that
-arrive after the system's event time clock (as signaled by the watermarks) has already passed the time of the late element's
-timestamp. See [Allowed Lateness]({{ site.baseurl }}/dev/stream/operators/windows.html#allowed-lateness) for more information on how to work
-with late elements in event time windows.
+由于这个原因，流程序可能会明确地期望一些*迟到*的元素。
+延迟元素是在系统事件时间时钟之后到达的元素（正如水印所示）已经超过了延迟元素时间戳的时间。
+有关如何在事件时间窗口中使用延迟元素的更多信息，请参阅 [Allowed Lateness]({{ site.baseurl }}/dev/stream/operators/windows.html#allowed-lateness)
 
 
-## Debugging Watermarks
+## 调试水印
 
-Please refer to the [Debugging Windows & Event Time]({{ site.baseurl }}/monitoring/debugging_event_time.html) section for debugging
-watermarks at runtime.
+请参考[Debugging Windows & Event Time]({{ site.baseurl }}/monitoring/debugging_event_time.html) 进行调试运行时水印。
 
 {% top %}
