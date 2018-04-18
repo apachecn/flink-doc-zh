@@ -68,12 +68,10 @@ Flink在流程序中支持不同的*时间*概念。
 
 ### 设置时间特征
 
-The first part of a Flink DataStream program usually sets the base *time characteristic*. That setting
-defines how data stream sources behave (for example, whether they will assign timestamps), and what notion of
-time should be used by window operations like `KeyedStream.timeWindow(Time.seconds(30))`.
+Flink DataStream程序首先会设置*时间特征*。
+这个设定定义了数据源的行为方式(例如, 是否分配时间戳), 以及时间应该被窗口算子使用的概念就像 `KeyedStream.timeWindow(Time.seconds(30))`.
 
-The following example shows a Flink program that aggregates events in hourly time windows. The behavior of the
-windows adapts with the time characteristic.
+以下例子展示了一个Flink程序，用于聚合每小时时间窗口中的事件。窗口的行为适应了时间特征。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -117,54 +115,55 @@ stream
 </div>
 
 
-Note that in order to run this example in *event time*, the program needs to either use sources
-that directly define event time for the data and emit watermarks themselves, or the program must
-inject a *Timestamp Assigner & Watermark Generator* after the sources. Those functions describe how to access
-the event timestamps, and what degree of out-of-orderness the event stream exhibits.
+注意，为了在*事件时间*中运行此示例，该程序需要使用直接定义事件时间，并自己发出水印的数据源，
+或者程序必须在数据源接入后注入*时间戳分配 & 水印生成*。
+这些功能描述了如何访问事件时间戳，以及事件流显示的乱序程度。
 
-The section below describes the general mechanism behind *timestamps* and *watermarks*. For a guide on how
-to use timestamp assignment and watermark generation in the Flink DataStream API, please refer to
+
+以下部分描述*时间戳*和*水印*背后的一般机制。
+关于如何在Flink DataStream API中使用时间戳分配和水印生成，请参阅
 [Generating Timestamps / Watermarks]({{ site.baseurl }}/dev/event_timestamps_watermarks.html).
 
 
-# Event Time and Watermarks
+# 事件时间和水印
 
-*Note: Flink implements many techniques from the Dataflow Model. For a good introduction to event time and watermarks, have a look at the articles below.*
+*注意：Flink从数据流模型中实现了许多技术。 要详细了解事件时间和水印，请查看下面的文章。*
 
   - [Streaming 101](https://www.oreilly.com/ideas/the-world-beyond-batch-streaming-101) by Tyler Akidau
   - The [Dataflow Model paper](https://research.google.com/pubs/archive/43864.pdf)
 
 
-A stream processor that supports *event time* needs a way to measure the progress of event time.
-For example, a window operator that builds hourly windows needs to be notified when event time has passed beyond the
-end of an hour, so that the operator can close the window in progress.
+为了支持*事件时间*的流处理器需要一种方法来衡量事件时间的进度。
+例如，当事件时间超过一个小时的结束时，需要通知建立每小时窗口的窗口算子。以便算子可以在程序中关闭该窗口。
 
-*Event time* can progress independently of *processing time* (measured by wall clocks).
-For example, in one program the current *event time* of an operator may trail slightly behind the *processing time*
-(accounting for a delay in receiving the events), while both proceed at the same speed.
-On the other hand, another streaming program might progress through weeks of event time with only a few seconds of processing,
-by fast-forwarding through some historic data already buffered in a Kafka topic (or another message queue).
+*事件时间*可以独立于*处理时间* (通过挂钟测量)进行。
+例如，在一个程序中，算子当前的*事件时间*可能稍微落后于*处理时间*（考虑到事件接收的延迟），
+而两者都以相同的速度进行。
+另一方面，在另一个流程序通过快速转发已经缓存在Kafka主题（或者别的消息队列）中的历史数据，
+仅需几秒就可处理可能持续几周的事件时间。
 
 ------
 
-The mechanism in Flink to measure progress in event time is **watermarks**.
-Watermarks flow as part of the data stream and carry a timestamp *t*. A *Watermark(t)* declares that event time has reached time
-*t* in that stream, meaning that there should be no more elements from the stream with a timestamp *t' <= t* (i.e. events with timestamps
-older or equal to the watermark).
+Flink中测量事件时间进度的机制是**水印(watermarks)**。
+水印作为数据流的一部分流动并带有时间戳*t*。
+*Watermark(t)* 声明了事件时间到达流中的时间 *t*，这意味着流中不应该带有时间戳 *t' <= t* 的元素
+（即事件的时间戳早于或等于水印的时间戳）。
 
-The figure below shows a stream of events with (logical) timestamps, and watermarks flowing inline. In this example the events are in order
-(with respect to their timestamps), meaning that the watermarks are simply periodic markers in the stream.
+下图显示了具有（逻辑）时间戳和内嵌水印的事件流。
+在这个例子中，事件是经过排序的（按照它们的时间戳），
+这意味着水印只是流中简单的周期性标记。
+
 
 <img src="{{ site.baseurl }}/fig/stream_watermark_in_order.svg" alt="A data stream with events (in order) and watermarks" class="center" width="65%" />
 
-Watermarks are crucial for *out-of-order* streams, as illustrated below, where the events are not ordered by their timestamps.
-In general a watermark is a declaration that by that point in the stream, all events up to a certain timestamp should have arrived.
-Once a watermark reaches an operator, the operator can advance its internal *event time clock* to the value of the watermark.
+水印对*无序*流是至关重要的，如下所示，其事件不按时间戳排序。
+一般来说，水印是流中某个点上的一种声明，所有达到这个点上时间戳的事件都应该到达。
+一旦水印抵达算子，算子可以将其内部*事件时间时钟*提前到水印的值。
 
 <img src="{{ site.baseurl }}/fig/stream_watermark_out_of_order.svg" alt="A data stream with events (out of order) and watermarks" class="center" width="65%" />
 
 
-## Watermarks in Parallel Streams
+## 并行流中的水印
 
 Watermarks are generated at, or directly after, source functions. Each parallel subtask of a source function usually
 generates its watermarks independently. These watermarks define the event time at that particular parallel source.
