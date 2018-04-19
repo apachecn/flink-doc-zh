@@ -321,7 +321,7 @@ class PunctuatedAssigner extends AssignerWithPunctuatedWatermarks[MyEvent] {
 
 在这种情况下，您可以使用Flink的Kafka-partition-aware水印生成器。
 使用该特性，Kafka消费者可以在每个Kafka分区内生成水印，
-每个分区的水印与在流shuffle上合并水印相同的方式进行合并。
+每个分区的水印与在流洗牌(shuffled)上合并水印相同的方式进行合并。
 
 例如，如果事件时间戳严格按照Kafka分区升序排列，
 使用 [ascending timestamps watermark generator](event_timestamp_extractors.html#assigners-with-ascending-timestamps) （升序时间戳水印生成器）生成每个分区的水印，整体水印将会很完美。

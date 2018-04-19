@@ -25,26 +25,24 @@ under the License.
 * toc
 {:toc}
 
-As described in [timestamps and watermark handling]({{ site.baseurl }}/dev/event_timestamps_watermarks.html),
-Flink provides abstractions that allow the programmer to assign their own timestamps and emit their own watermarks. More specifically,
-one can do so by implementing one of the `AssignerWithPeriodicWatermarks` and `AssignerWithPunctuatedWatermarks` interfaces, depending
-on the use case. In a nutshell, the first will emit watermarks periodically, while the second does so based on some property of
-the incoming records, e.g. whenever a special element is encountered in the stream.
+正如 [timestamps and watermark handling]({{ site.baseurl }}/dev/event_timestamps_watermarks.html),
+Flink提供的抽象方法允许程序员分配自己的时间戳并发出自己的水印。
+更具体地说，可以通过实现 `AssignerWithPeriodicWatermarks`或者 `AssignerWithPunctuatedWatermarks`接口来实现，取决于具体案例。
+简而言之，第一个将定期发出水印，而第二个则基于传入记录的某些属性，例如， 每当在流中遇到特殊元素时。
 
-In order to further ease the programming effort for such tasks, Flink comes with some pre-implemented timestamp assigners.
-This section provides a list of them. Apart from their out-of-the-box functionality, their implementation can serve as an example
-for custom implementations.
+为了进一步简化这些任务的编程工作，Flink提供了一些预先实现的时间戳分配器。 
+本节提供了它们的列表。 
+除了它们的开箱即用功能之外，它们的实现可以作为自定义实现的示例。
 
 ### **Assigners with ascending timestamps**
 
-The simplest special case for *periodic* watermark generation is the case where timestamps seen by a given source task
-occur in ascending order. In that case, the current timestamp can always act as a watermark, because no earlier timestamps will
-arrive.
+对于 *周期性* 水印生成最简单的特殊情况是，给定的源任务看到的时间戳是按升序发生。
+在这种情况下，当前时间戳总是可以充当水印，因为不会有更早的时间戳到达。
 
-Note that it is only necessary that timestamps are ascending *per parallel data source task*. For example, if
-in a specific setup one Kafka partition is read by one parallel data source instance, then it is only necessary that
-timestamps are ascending within each Kafka partition. Flink's watermark merging mechanism will generate correct
-watermarks whenever parallel streams are shuffled, unioned, connected, or merged.
+请注意，每个并行数据源任务的时间戳升序都是必要的。
+例如，如果在特定设置中一个Kafka分区被一个并行数据源实例读取，那么只需要每个Kafka分区内的时间戳都是上升的。 
+每当并行流被洗牌（shuffled），联合（unioned），连接（connected）或合并（merged）时，
+Flink的水印合并机制将生成正确的水印。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -72,15 +70,14 @@ val withTimestampsAndWatermarks = stream.assignAscendingTimestamps( _.getCreatio
 
 ### **Assigners allowing a fixed amount of lateness**
 
-Another example of periodic watermark generation is when the watermark lags behind the maximum (event-time) timestamp
-seen in the stream by a fixed amount of time. This case covers scenarios where the maximum lateness that can be encountered in a
-stream is known in advance, e.g. when creating a custom source containing elements with timestamps spread within a fixed period of
-time for testing. For these cases, Flink provides the `BoundedOutOfOrdernessTimestampExtractor` which takes as an argument
-the `maxOutOfOrderness`, i.e. the maximum amount of time an element is allowed to be late before being ignored when computing the
-final result for the given window. Lateness corresponds to the result of `t - t_w`, where `t` is the (event-time) timestamp of an
-element, and `t_w` that of the previous watermark. If `lateness > 0` then the element is considered late and is, by default, ignored when computing
-the result of the job for its corresponding window. See the documentation about [allowed lateness]({{ site.baseurl }}/dev/stream/operators/windows.html#allowed-lateness)
-for more information about working with late elements.
+周期性水印生成的另一个例子是水印滞后于在流中出现的最大（事件时间）时间戳的一段固定时间。
+这种情况涵盖预先知道流中可能会遇到最大延迟的场景，
+例如，创建包含时间戳的元素的自定义源时，在固定的一段时间内进行测试。
+对于这些情况，Flink提供了`BoundedOutOfOrdernessTimestampExtractor`抽象类以`maxOutOfOrderness`作为参数，
+即在计算给定窗口的最终结果时元素被忽略之前允许延迟的最大时间量。
+延迟(lateness)对应与 `t - t_w` 的结果，其中 `t` 是元素的（事件时间）时间戳，`t_w` 是前一个水印。
+如果 `lateness > 0` ，那么该元素被认为是延迟的，并且在计算其相应窗口的任务结果时默认被忽略。
+查看关于延迟元素的文档 [allowed lateness]({{ site.baseurl }}/dev/stream/operators/windows.html#allowed-lateness)
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
