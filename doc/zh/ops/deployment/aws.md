@@ -23,40 +23,37 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-Amazon Web Services offers cloud computing services on which you can run Flink.
+Amazon Web Services提供可以运行Flink的云计算服务。
 
 * ToC
 {:toc}
 
-## EMR: Elastic MapReduce
+## EMR：弹性MapReduce
 
-[Amazon Elastic MapReduce](https://aws.amazon.com/elasticmapreduce/) (Amazon EMR) is a web service that makes it easy to  quickly setup a Hadoop cluster. This is the **recommended way** to run Flink on AWS as it takes care of setting up everything.
+[Amazon Elastic MapReduce](https://aws.amazon.com/elasticmapreduce/) (Amazon EMR)是一项Web服务，可以轻松快速设置Hadoop群集。这是在AWS上运行Flink 的 **推荐方式**，因为它负责设置所有内容。
 
-### Standard EMR Installation
+### 标准EMR安装
 
-Flink is a supported application on Amazon EMR. [Amazon's documentation](http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-flink.html)
-describes configuring Flink, creating and monitoring a cluster, and working with jobs.
+link是Amazon EMR上受支持的应用程序。[Amazon's documentation](http://docs.aws.amazon.com/emr/latest/ReleaseGuide/emr-flink.html)介绍了配置Flink，创建和监控集群以及处理job。
 
-### Custom EMR Installation
+### 自定义EMR安装
 
-Amazon EMR services are regularly updated to new releases but a version of Flink which is not available
-can be manually installed in a stock EMR cluster.
+Amazon EMR服务定期更新为新版本，但可以手动将未提供的Flink版本安装在stock EMR群集中。
 
-**Create EMR Cluster**
+**创建EMR群集**
 
-The EMR documentation contains [examples showing how to start an EMR cluster](http://docs.aws.amazon.com/ElasticMapReduce/latest/ManagementGuide/emr-gs-launch-sample-cluster.html). You can follow that guide and install any EMR release. You don't need to install the *All Applications* part of the EMR release, but can stick to *Core Hadoop*.
+EMR文档包含[examples showing how to start an EMR cluster](http://docs.aws.amazon.com/ElasticMapReduce/latest/ManagementGuide/emr-gs-launch-sample-cluster.html)(显示如何启动EMR群集的示例)。您可以按照该指南安装任何EMR版本。您不需要安装EMR版本的*所有应用程序*部分，但必须安装*Core Hadoop*。
 
-{% warn Note %}
-Access to S3 buckets requires
-[configuration of IAM roles](http://docs.aws.amazon.com/ElasticMapReduce/latest/ManagementGuide/emr-iam-roles.html)
-when creating an EMR cluster.
+{% 注意 %}
+在创建EMR集群时，访问S3存储桶需要
+[配置IAM roles](http://docs.aws.amazon.com/ElasticMapReduce/latest/ManagementGuide/emr-iam-roles.html)。
 
-**Install Flink on EMR Cluster**
+**在EMR集群上安装Flink**
 
-After creating your cluster, you can [connect to the master node](http://docs.aws.amazon.com/ElasticMapReduce/latest/ManagementGuide/emr-connect-master-node.html) and install Flink:
+创建群集后，可以[connect to the master node](http://docs.aws.amazon.com/ElasticMapReduce/latest/ManagementGuide/emr-connect-master-node.html) 并安装Flink：
 
-1. Go the [Downloads Page]({{ site.download_url }}) and **download a binary version of Flink matching the Hadoop version** of your EMR cluster, e.g. Hadoop 2.7 for EMR releases 4.3.0, 4.4.0, or 4.5.0.
-2. Extract the Flink distribution and you are ready to deploy [Flink jobs via YARN](yarn_setup.html) after **setting the Hadoop config directory**:
+1. 转到[Downloads Page]({{ site.download_url }}) **并下载与您的EMR集群的Hadoop版本匹配的Flink版本**，例如Hadoop 2.7 for EMR版本4.3.0,4.0.0或4.5.0。
+2. 解压Flink，在**设置了Hadoop config目录**后，[准备通过YARN部署Flink job](yarn_setup.html)：
 
 ```bash
 HADOOP_CONF_DIR=/etc/hadoop/conf ./bin/flink run -m yarn-cluster -yn 1 examples/streaming/WordCount.jar
@@ -64,17 +61,18 @@ HADOOP_CONF_DIR=/etc/hadoop/conf ./bin/flink run -m yarn-cluster -yn 1 examples/
 
 {% top %}
 
-## S3: Simple Storage Service
+## S3: 简单存储服务
 
-[Amazon Simple Storage Service](http://aws.amazon.com/s3/) (Amazon S3) provides cloud object storage for a variety of use cases. You can use S3 with Flink for **reading** and **writing data** as well in conjunction with the [streaming **state backends**]({{ site.baseurl}}/ops/state/state_backends.html) or even as a YARN object storage.
+[Amazon Simple Storage Service](http://aws.amazon.com/s3/) （Amazon S3）为各种用例提供云对象存储。您可以使用带有Flink的S3来**读取**和**写入**数据，可以作为 [streaming **state backends**]({{ site.baseurl}}/ops/state/state_backends.html)（流式**状态后端**），甚至作为YARN对象存储。
 
-You can use S3 objects like regular files by specifying paths in the following format:
+通过使用以下格式指定路径，可以使用常规文件等S3对象：
+您可以像使用常规文件一样使用S3对象，但需要以以如下格式指定路径:
 
 ```
 s3://<your-bucket>/<endpoint>
 ```
 
-The endpoint can either be a single file or a directory, for example:
+端点可以是单个文件或目录，例如：
 
 ```java
 // Read from S3 bucket
@@ -87,39 +85,36 @@ stream.writeAsText("s3://<bucket>/<endpoint>");
 env.setStateBackend(new FsStateBackend("s3://<your-bucket>/<endpoint>"));
 ```
 
-Note that these examples are *not* exhaustive and you can use S3 in other places as well, including your [high availability setup](../jobmanager_high_availability.html) or the [RocksDBStateBackend]({{ site.baseurl }}/ops/state/state_backends.html#the-rocksdbstatebackend); everywhere that Flink expects a FileSystem URI.
+注意，这些示例*不是*详尽的，您也可以在其他地方使用S3，包括[high availability setup](../jobmanager_high_availability.html) (高可用性设置)或 [RocksDBStateBackend]({{ site.baseurl }}/ops/state/state_backends.html#the-rocksdbstatebackend);（RocksDBStateBackend）； Flink期望每个地方都有一个文件系统URI。
 
-For most use cases, you may use one of our shaded `flink-s3-fs-hadoop` and `flink-s3-fs-presto` S3
-filesystem wrappers which are fairly easy to set up. For some cases, however, e.g. for using S3 as
-YARN's resource storage dir, it may be necessary to set up a specific Hadoop S3 FileSystem
-implementation. Both ways are described below.
+对于大多数用例，您可能会使用我们的一种带有阴影的、由`flink-s3-fs-hadoop`和`flink-s3-fs-presto`文件系统包装，这是相当容易设置的。但是，对于某些情况，例如将S3用作YARN的资源存储目录，可能需要设置特定的Hadoop S3 文件系统实现。下面介绍两种方法。
 
-### Shaded Hadoop/Presto S3 file systems (recommended)
+### Shaded Hadoop / Presto S3文件系统（推荐）
 
-{% panel **Note:** You don't have to configure this manually if you are running [Flink on EMR](#emr-elastic-mapreduce). %}
+{%  **注意:** 如果在 [Flink on EMR](#emr-elastic-mapreduce).（EMR上运行Flink），您不需要手动配置它。 %}
 
-To use either `flink-s3-fs-hadoop` or `flink-s3-fs-presto`, copy the respective JAR file from the
-`opt` directory to the `lib` directory of your Flink distribution before starting Flink, e.g.
+要使用`flink-s3-fs-hadoop`或者`flink-s3-fs-presto`，可以将各自的JAR文件从opt目录复制到Flink所在的lib目录，然后再开始Flink，例如：
 
 ```
 cp ./opt/flink-s3-fs-presto-{{ site.version }}.jar ./lib/
 ```
 
-#### Configure Access Credentials
+#### 配置访问凭证
 
-After setting up the S3 FileSystem wrapper, you need to make sure that Flink is allowed to access your S3 buckets.
+在设置S3 文件系统包装器之后，您需要确保允许Flink访问您的S3存储桶。
 
-##### Identity and Access Management (IAM) (Recommended)
+##### 身份和访问管理（IAM）（推荐）
 
-The recommended way of setting up credentials on AWS is via [Identity and Access Management (IAM)](http://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html). You can use IAM features to securely give Flink instances the credentials that they need in order to access S3 buckets. Details about how to do this are beyond the scope of this documentation. Please refer to the AWS user guide. What you are looking for are [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
+在AWS上建立凭证的推荐方式是通过 [Identity and Access Management (IAM)](http://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)（身份和访问管理（IAM））。 您可以使用IAM功能安全地为Flink实例提供他们访问S3存储桶所需的凭据。有关如何执行此操作的详细信息超出了本文档的范围。请参阅AWS用户指南。 [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
 
-If you set this up correctly, you can manage access to S3 within AWS and don't need to distribute any access keys to Flink.
+如果您正确设置了此项，则可以在AWS中管理对S3的访问权限，并且不需要将任何访问密钥分发给Flink。
 
-##### Access Keys (Discouraged)
+##### 访问密钥（不推荐）
 
-Access to S3 can be granted via your **access and secret key pair**. Please note that this is discouraged since the [introduction of IAM roles](https://blogs.aws.amazon.com/security/post/Tx1XG3FX6VMU6O5/A-safer-way-to-distribute-AWS-credentials-to-EC2).
+可以通过**访问和密钥对**获得对S3的访问。请注意，从 [introduction of IAM roles](https://blogs.aws.amazon.com/security/post/Tx1XG3FX6VMU6O5/A-safer-way-to-distribute-AWS-credentials-to-EC2)开始，这是不推荐使用的方式。
 
 You need to configure both `s3.access-key` and `s3.secret-key`  in Flink's  `flink-conf.yaml`:
+你需要 在Flink的配置文件`flink-conf.yaml`中配置 `s3.access-key`和`s3.secret-key`：
 
 ```
 s3.access-key: your-access-key
@@ -128,26 +123,24 @@ s3.secret-key: your-secret-key
 
 {% top %}
 
-### Hadoop-provided S3 file systems - manual setup
+### Hadoop提供的S3文件系统 - 手动设置
 
-{% panel **Note:** You don't have to configure this manually if you are running [Flink on EMR](#emr-elastic-mapreduce). %}
+{%  **注意:** 如果在 [Flink on EMR](#emr-elastic-mapreduce).（EMR上运行Flink），您不需要手动配置它。 %}
 
-This setup is a bit more complex and we recommend using our shaded Hadoop/Presto file systems
-instead (see above) unless required otherwise, e.g. for using S3 as YARN's resource storage dir
-via the `fs.defaultFS` configuration property in Hadoop's `core-site.xml`.
+这个设置有点复杂，我们建议使用我们的配置的Hadoop/Presto文件系统(参见上文)，除非有其他要求，例如，通过配置Hadoop的`core-site.xml`文件中的`fs.defaultFS`属性将S3用作YARN的资源存储目录。
 
-#### Set S3 FileSystem
+#### 设置S3文件系统
 
-Interaction with S3 happens via one of [Hadoop's S3 FileSystem clients](https://wiki.apache.org/hadoop/AmazonS3):
+通过[Hadoop's S3 文件系统客户端](https://wiki.apache.org/hadoop/AmazonS3)之一与S3进行交互：
 
-1. `S3AFileSystem` (**recommended** for Hadoop 2.7 and later): file system for reading and writing regular files using Amazon's SDK internally. No maximum file size and works with IAM roles.
-2. `NativeS3FileSystem` (for Hadoop 2.6 and earlier): file system for reading and writing regular files. Maximum object size is 5GB and does not work with IAM roles.
+1. `S3AFileSystem` (**推荐** 用于Hadoop 2.7及更高版本）：用于在内部使用Amazon的SDK读取和写入常规文件的文件系统。没有最大文件大小并且与 IAM roles一起使用。
+2. `NativeS3FileSystem`（用于Hadoop 2.6及更早版本）：用于读写常规文件的文件系统。最大对象大小为5GB，不适用于 IAM roles。
 
-##### `S3AFileSystem` (Recommended)
+##### `S3AFileSystem` (推荐)
 
-This is the recommended S3 FileSystem implementation to use. It uses Amazon's SDK internally and works with IAM roles (see [Configure Access Credentials](#configure-access-credentials-1)).
+这是推荐的S3文件系统实现。它在内部使用Amazon的SDK并与IAM roles配合使用（请参阅 [Configure Access Credentials](#configure-access-credentials-1)).
 
-You need to point Flink to a valid Hadoop configuration, which contains the following properties in `core-site.xml`:
+您需要将Flink指向一个有效的Hadoop配置，该配置包含在`core-site.xml`配置文件中：
 
 ```xml
 <configuration>
@@ -167,13 +160,13 @@ You need to point Flink to a valid Hadoop configuration, which contains the foll
 </configuration>
 ```
 
-This registers `S3AFileSystem` as the default FileSystem for URIs with the `s3a://` scheme.
+这将注册 `S3AFileSystem`为具有`s3a://`方案的URI的默认文件系统。
 
 ##### `NativeS3FileSystem`
 
-This file system is limited to files up to 5GB in size and it does not work with IAM roles (see [Configure Access Credentials](#configure-access-credentials-1)), meaning that you have to manually configure your AWS credentials in the Hadoop config file.
+该文件系统仅限于最大5GB的文件，并且不适用于 IAM roles（请参阅[Configure Access Credentials](#configure-access-credentials-1)），这意味着您必须在Hadoop配置文件中手动配置AWS凭证。
 
-You need to point Flink to a valid Hadoop configuration, which contains the following property in `core-site.xml`:
+您需要将Flink指向一个有效的Hadoop配置，该配置包含在`core-site.xml`配置文件中：
 
 ```xml
 <property>
@@ -182,45 +175,44 @@ You need to point Flink to a valid Hadoop configuration, which contains the foll
 </property>
 ```
 
-This registers `NativeS3FileSystem` as the default FileSystem for URIs with the `s3://` scheme.
+这将注册`NativeS3FileSystem`为具有`s3://`方案的URI的默认文件系统。
 
 {% top %}
 
-#### Hadoop Configuration
+#### Hadoop配置
 
-You can specify the [Hadoop configuration](../config.html#hdfs) in various ways pointing Flink to
-the path of the Hadoop configuration directory, for example
-- by setting the environment variable `HADOOP_CONF_DIR`, or
-- by setting the `fs.hdfs.hadoopconf` configuration option in `flink-conf.yaml`:
+例如，您可以通过各种方式指定[Hadoop configuration](../config.html#hdfs) 将Flink指向Hadoop配置目录，例如：
+- 通过设置环境变量`HADOOP_CONF_DIR`, 或者
+- 通过在`flink-conf.yaml`中配置`fs.hdfs.hadoopconf`:
 ```
 fs.hdfs.hadoopconf: /path/to/etc/hadoop
 ```
 
-This registers `/path/to/etc/hadoop` as Hadoop's configuration directory with Flink. Flink will look for the `core-site.xml` and `hdfs-site.xml` files in the specified directory.
+`/path/to/etc/hadoop` 用Flink 注册为Hadoop的配置目录。Flink会查找指定目录中的文件`core-site.xml`和`hdfs-site.xml`文件。
 
 {% top %}
 
-#### Configure Access Credentials
+#### 配置访问凭证
 
-{% panel **Note:** You don't have to configure this manually if you are running [Flink on EMR](#emr-elastic-mapreduce). %}
+{%  **注意:** 如果在 [Flink on EMR](#emr-elastic-mapreduce).（EMR上运行Flink），您不需要手动配置它。 %}
 
-After setting up the S3 FileSystem, you need to make sure that Flink is allowed to access your S3 buckets.
+设置S3 FileSystem之后，您需要确保Flink可以访问您的S3存储桶。
 
-##### Identity and Access Management (IAM) (Recommended)
+##### Identity and Access Management (IAM) (推荐)
 
-When using `S3AFileSystem`, the recommended way of setting up credentials on AWS is via [Identity and Access Management (IAM)](http://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html). You can use IAM features to securely give Flink instances the credentials that they need in order to access S3 buckets. Details about how to do this are beyond the scope of this documentation. Please refer to the AWS user guide. What you are looking for are [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
+在使用时`S3AFileSystem`，建议在AWS上设置凭据的方式参考： [Identity and Access Management (IAM)](http://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html)。您可以使用IAM功能安全地为Flink实例提供他们访问S3存储桶所需的凭据。有关如何执行此操作的详细信息超出了本文档的范围。请参阅AWS用户指南。 [IAM Roles](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html).
 
-If you set this up correctly, you can manage access to S3 within AWS and don't need to distribute any access keys to Flink.
+如果您正确设置了此项，则可以在AWS中管理对S3的访问权限，并且不需要将任何访问密钥分发给Flink。
 
-Note that this only works with `S3AFileSystem` and not `NativeS3FileSystem`.
+请注意，这只适用于`S3AFileSystem` 而不适用于 `NativeS3FileSystem`。
 
 {% top %}
 
-##### Access Keys with `S3AFileSystem` (Discouraged)
+##### Access Keys with `S3AFileSystem` (不推荐)
 
-Access to S3 can be granted via your **access and secret key pair**. Please note that this is discouraged since the [introduction of IAM roles](https://blogs.aws.amazon.com/security/post/Tx1XG3FX6VMU6O5/A-safer-way-to-distribute-AWS-credentials-to-EC2).
+可以通过**访问和密钥对**获得对S3的访问。请注意，从[introduction of IAM roles](https://blogs.aws.amazon.com/security/post/Tx1XG3FX6VMU6O5/A-safer-way-to-distribute-AWS-credentials-to-EC2)开始，这是不建议是使用的方式。
 
-For `S3AFileSystem` you need to configure both `fs.s3a.access.key` and `fs.s3a.secret.key`  in Hadoop's  `core-site.xml`:
+对于`S3AFileSystem`，您需要在Hadoop的`core-site.xml`中配置 `fs.s3a.access.key`和 `fs.s3a.secret.key`：
 
 ```xml
 <property>
@@ -236,11 +228,11 @@ For `S3AFileSystem` you need to configure both `fs.s3a.access.key` and `fs.s3a.s
 
 {% top %}
 
-##### Access Keys with `NativeS3FileSystem` (Discouraged)
+##### Access Keys with `NativeS3FileSystem` (不推荐)
 
-Access to S3 can be granted via your **access and secret key pair**. But this is discouraged and you should use `S3AFileSystem` [with the required IAM roles](https://blogs.aws.amazon.com/security/post/Tx1XG3FX6VMU6O5/A-safer-way-to-distribute-AWS-credentials-to-EC2).
+可以通过**访问和密钥对**获得对S3的访问。请注意，从[introduction of IAM roles](https://blogs.aws.amazon.com/security/post/Tx1XG3FX6VMU6O5/A-safer-way-to-distribute-AWS-credentials-to-EC2)开始，这是不建议是使用的方式。
 
-For `NativeS3FileSystem` you need to configure both `fs.s3.awsAccessKeyId` and `fs.s3.awsSecretAccessKey`  in Hadoop's  `core-site.xml`:
+对于`NativeS3FileSystem`你需要 在Hadoop的`core-site.xml`中配置`fs.s3.awsAccessKeyId`和`fs.s3.awsSecretAccessKey`：
 
 ```xml
 <property>
@@ -256,17 +248,17 @@ For `NativeS3FileSystem` you need to configure both `fs.s3.awsAccessKeyId` and `
 
 {% top %}
 
-#### Provide S3 FileSystem Dependency
+#### 提供S3 文件系统依赖关系
 
-{% panel **Note:** You don't have to configure this manually if you are running [Flink on EMR](#emr-elastic-mapreduce). %}
+{%  **注意:** 如果在[Flink on EMR](#emr-elastic-mapreduce)（EMR上运行Flink），您不需要手动配置它[Flink on EMR](#emr-elastic-mapreduce)。 %}
 
-Hadoop's S3 FileSystem clients are packaged in the `hadoop-aws` artifact (Hadoop version 2.6 and later). This JAR and all its dependencies need to be added to Flink's classpath, i.e. the class path of both Job and TaskManagers. Depending on which FileSystem implementation and which Flink and Hadoop version you use, you need to provide different dependencies (see below).
+Hadoop的S3 文件系统客户端打包在`hadoop-aws`工件中（Hadoop版本2.6和更高版本）。此JAR及其所有依赖项需要添加到Flink的类路径中，例如：Job和TaskManagers的类路径。根据您所使用的文件系统实现和Flink和Hadoop版本的不同，您需要提供不同的依赖关系(见下文)。
 
-There are multiple ways of adding JARs to Flink's class path, the easiest being simply to drop the JARs in Flink's `lib` folder. You need to copy the `hadoop-aws` JAR with all its dependencies. You can also export the directory containing these JARs as part of the `HADOOP_CLASSPATH` environment variable on all machines.
+将JAR添加到Flink的类路径有多种方式，最简单的方法就是将JAR放入Flink的`lib`文件夹中。您需要复制`hadoop-aws`JAR及其所有依赖项。您还可以将包含这些JAR的目录作为`HADOOP_CLASSPATH`环境变量的一部分输出到所有机器上。
 
 ##### Flink for Hadoop 2.7
 
-Depending on which file system you use, please add the following dependencies. You can find these as part of the Hadoop binaries in `hadoop-2.7/share/hadoop/tools/lib`:
+根据您使用的文件系统，请添加以下依赖项。您可以在以下位置找到这些作为二进制文件的一部分：`hadoop-2.7/share/hadoop/tools/lib`:
 
 - `S3AFileSystem`:
   - `hadoop-aws-2.7.3.jar`
@@ -284,11 +276,11 @@ Depending on which file system you use, please add the following dependencies. Y
   - `hadoop-aws-2.7.3.jar`
   - `guava-11.0.2.jar`
 
-Note that `hadoop-common` is available as part of Flink, but Guava is shaded by Flink.
+注意，`hadoop-common` 可以作为Flink的一部分，但是Guava被Flink遮蔽。
 
 ##### Flink for Hadoop 2.6
 
-Depending on which file system you use, please add the following dependencies. You can find these as part of the Hadoop binaries in `hadoop-2.6/share/hadoop/tools/lib`:
+根据您使用的文件系统，请添加以下依赖项。您可以在以下位置找到这些作为二进制文件的一部分：`hadoop-2.6/share/hadoop/tools/lib`:
 
 - `S3AFileSystem`:
   - `hadoop-aws-2.6.4.jar`
@@ -304,21 +296,21 @@ Depending on which file system you use, please add the following dependencies. Y
   - `hadoop-aws-2.6.4.jar`
   - `guava-11.0.2.jar`
 
-Note that `hadoop-common` is available as part of Flink, but Guava is shaded by Flink.
+注意，`hadoop-common` 可以作为Flink的一部分，但是Guava被Flink遮蔽。
 
-##### Flink for Hadoop 2.4 and earlier
+##### Flink for Hadoop 2.4 及更早版本
 
-These Hadoop versions only have support for `NativeS3FileSystem`. This comes pre-packaged with Flink for Hadoop 2 as part of `hadoop-common`. You don't need to add anything to the classpath.
+这些Hadoop版本只支持`NativeS3FileSystem`。这是作为Hadoop 2的一部分与Flink一起预先打包到`hadoop-common`中。您不需要向类路径添加任何内容。
 
 {% top %}
 
-## Common Issues
+## 常见问题
 
-The following sections lists common issues when working with Flink on AWS.
+以下部分列出了在AWS上使用Flink时的常见问题。
 
 ### Missing S3 FileSystem Configuration
 
-If your job submission fails with an Exception message noting that `No file system found with scheme s3` this means that no FileSystem has been configured for S3. Please check out the configuration sections for our [shaded Hadoop/Presto](#shaded-hadooppresto-s3-file-systems-recommended) or [generic Hadoop](#set-s3-filesystem) file systems for details on how to configure this properly.
+如果您的job提交失败并显示异常消息，注意`No file system found with scheme s3`这意味着没有为S3配置文件系统。请查看我们 [shaded Hadoop/Presto](#shaded-hadooppresto-s3-file-systems-recommended)或[generic Hadoop](#set-s3-filesystem) 文件系统的配置部分，以了解如何正确配置它的详细信息。
 
 ```
 org.apache.flink.client.program.ProgramInvocationException: The program execution failed:
@@ -338,7 +330,7 @@ Caused by: java.io.IOException: No file system found with scheme s3,
 
 ### AWS Access Key ID and Secret Access Key Not Specified
 
-If you see your job failing with an Exception noting that the `AWS Access Key ID and Secret Access Key must be specified as the username or password`, your access credentials have not been set up properly. Please refer to the access credential section for our [shaded Hadoop/Presto](#configure-access-credentials) or [generic Hadoop](#configure-access-credentials-1) file systems for details on how to configure this.
+如果您发现自己的job失败并注意到`AWS Access Key ID and Secret Access Key must be specified as the username or password`，您的访问凭证没有正确设置，请注意。有关如何配置此功能的详细信息，请参阅我们[shaded Hadoop/Presto](#configure-access-credentials)或[generic Hadoop](#configure-access-credentials-1) 文件系统的访问凭证部分。
 
 ```
 org.apache.flink.client.program.ProgramInvocationException: The program execution failed:
@@ -368,7 +360,7 @@ Caused by: java.lang.IllegalArgumentException: AWS Access Key ID and Secret Acce
 
 ### ClassNotFoundException: NativeS3FileSystem/S3AFileSystem Not Found
 
-If you see this Exception, the S3 FileSystem is not part of the class path of Flink. Please refer to [S3 FileSystem dependency section](#provide-s3-filesystem-dependency) for details on how to configure this properly.
+如果看到此异常，则S3 文件系统不是Flink类路径的一部分。有关如何正确配置的详细信息，请参阅[S3 FileSystem dependency section](#provide-s3-filesystem-dependency) 。
 
 ```
 Caused by: java.lang.RuntimeException: java.lang.RuntimeException: java.lang.ClassNotFoundException: Class org.apache.hadoop.fs.s3native.NativeS3FileSystem not found
@@ -395,14 +387,14 @@ Caused by: java.lang.ClassNotFoundException: Class org.apache.hadoop.fs.s3native
 
 ### IOException: `400: Bad Request`
 
-If you have configured everything properly, but get a `Bad Request` Exception **and** your S3 bucket is located in region `eu-central-1`, you might be running an S3 client, which does not support [Amazon's signature version 4](http://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html).
+如果您已正确配置所有内容，但得到`Bad Request`异常**并且**您的S3存储桶位于区域`eu-central-1`，则您可能正在运行S3客户端，该客户端不支持 [Amazon's signature version 4](http://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html)。
 
 ```
 [...]
 Caused by: java.io.IOException: s3://<bucket-in-eu-central-1>/<endpoint> : 400 : Bad Request [...]
 Caused by: org.jets3t.service.impl.rest.HttpException [...]
 ```
-or
+或
 ```
 com.amazonaws.services.s3.model.AmazonS3Exception: Status Code: 400, AWS Service: Amazon S3, AWS Request ID: [...], AWS Error Code: null, AWS Error Message: Bad Request, S3 Extended Request ID: [...]
 
@@ -412,11 +404,14 @@ This should not apply to our shaded Hadoop/Presto S3 file systems but can occur 
 S3 file systems. In particular, all Hadoop versions up to 2.7.2 running `NativeS3FileSystem` (which
 depend on `JetS3t 0.9.0` instead of a version [>= 0.9.4](http://www.jets3t.org/RELEASE_NOTES.html))
 are affected but users also reported this happening with the `S3AFileSystem`.
+这不适用于我们定制的Hadoop/Presto S3文件系统，但可以在Hadoop提供的S3文件系统中使用。特别是，所有Hadoop版本更新到2.7.2以上，运行 `NativeS3FileSystem` （取决于`JetS3t 0.9.0` 版本[>= 0.9.4](http://www.jets3t.org/RELEASE_NOTES.html)）受到影响，但用户使用 `S3AFileSystem`也报告了发生这种情况。
 
 Except for changing the bucket region, you may also be able to solve this by
 [requesting signature version 4 for request authentication](https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingAWSSDK.html#specify-signature-version),
 e.g. by adding this to Flink's JVM options in `flink-conf.yaml` (see
 [configuration](../config.html#common-options)):
+除了更改存储区域之外，您还可以通过[requesting signature version 4 for request authentication](https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingAWSSDK.html#specify-signature-version)（请求签名版本4来请求身份验证）来解决此问题 ，例如通过`flink-conf.yaml`文件，将其添加到Flink的JVM配置（请参阅
+[configuration](../config.html#common-options)）：
 ```
 env.java.opts: -Dcom.amazonaws.services.s3.enableV4
 ```
@@ -426,6 +421,7 @@ env.java.opts: -Dcom.amazonaws.services.s3.enableV4
 ### NullPointerException at org.apache.hadoop.fs.LocalDirAllocator
 
 This Exception is usually caused by skipping the local buffer directory configuration `fs.s3a.buffer.dir` for the `S3AFileSystem`. Please refer to the [S3AFileSystem configuration](#s3afilesystem-recommended) section to see how to configure the `S3AFileSystem` properly.
+此异常通常由跳过本地缓冲目录配置`fs.s3a.buffer.dir`引起。请参阅[S3AFileSystem configuration](#s3afilesystem-recommended) 配置部分，了解如何正确配置`S3AFileSystem`。
 
 ```
 [...]

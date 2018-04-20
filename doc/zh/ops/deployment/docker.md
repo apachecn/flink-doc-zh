@@ -23,23 +23,20 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-[Docker](https://www.docker.com) is a popular container runtime. There are
-official Docker images for Apache Flink available on Docker Hub which can be
-used directly or extended to better integrate into a production environment.
+[Docker](https://www.docker.com) 是一个流行的容器运行环境。Docker Hub上提供了Apache Flink的正式Docker镜像，可直接使用或扩展以更好地集成到生产环境中。
 
 * This will be replaced by the TOC
 {:toc}
 
-## Official Docker Images
+## 官方Docker镜像
 
-The [official Docker repository](https://hub.docker.com/_/flink/) is
-hosted on Docker Hub and serves images of Flink version 1.2.1 and later.
+该 [official Docker repository](https://hub.docker.com/_/flink/)(官方Docker仓库)托管在Docker Hub上，并且提供的Flink镜像为1.2.1或更高版本。
 
-Images for each supported combination of Hadoop and Scala are available, and
-tag aliases are provided for convenience.
+支持Hadoop和Scala的每种组合的镜像都是可用的，并且为了方便起见还提供了标记别名功能。
 
 For example, the following aliases can be used: *(`1.2.y` indicates the latest
 release of Flink 1.2)*
+例如，下面的别名可以使用：*（1.2.y表示Flink 1.2的最新版本）*
 
 * `flink:latest` →
 `flink:<latest-flink>-hadoop<latest-hadoop>-scala_<latest-scala>`
@@ -60,38 +57,34 @@ For example:
 * `flink:1.2-scala_2.10-alpine`
 -->
 
-**Note:** The docker images are provided as a community project by individuals
-on a best-effort basis. They are not official releases by the Apache Flink PMC.
+**注意:** Docker镜像是由个人在力所能及的基础上提供的社区项目。它们不是由Apache Flink PMC正式发布的。
 
-## Flink with Docker Compose
+## Flink使用Docker Compose
 
-[Docker Compose](https://docs.docker.com/compose/) is a convenient way to run a
-group of Docker containers locally.
+[Docker Compose](https://docs.docker.com/compose/)是一种在本地运行一组Docker容器的简便方法。
 
-An [example config file](https://github.com/docker-flink/examples/blob/master/docker-compose.yml)
-is available on GitHub.
+GitHub上提供了一个 [example config file](https://github.com/docker-flink/examples/blob/master/docker-compose.yml)
+（示例配置文件）。
 
-### Usage
+### 用法
 
-* Launch a cluster in the foreground
+* 在前台启动群集
 
         docker-compose up
 
-* Launch a cluster in the background
+* 在后台启动群集
 
         docker-compose up -d
 
-* Scale the cluster up or down to *N* TaskManagers
+* 将集群向上或向下扩展到*N*个TaskManagers
 
         docker-compose scale taskmanager=<N>
 
-When the cluster is running, you can visit the web UI at [http://localhost:8081
-](http://localhost:8081) and submit a job.
+群集运行时，您可以访问[http://localhost:8081](http://localhost:8081) Web UI 并提交job。
 
-To submit a job via the command line, you must copy the JAR to the Jobmanager
-container and submit the job from there.
+要通过命令行提交job，您必须将JAR复制到Jobmanager容器并从那里提交job。
 
-For example:
+例如：
 
 {% raw %}
     $ JOBMANAGER_CONTAINER=$(docker ps --filter name=jobmanager --format={{.ID}})

@@ -23,51 +23,51 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-[Kubernetes](https://kubernetes.io) is a container orchestration system.
+[Kubernetes](https://kubernetes.io) 是一个容器编配系统。
 
 * This will be replaced by the TOC
 {:toc}
 
-## Simple Kubernetes Flink Cluster
+## 简单的Kubernetes Flink 集群
 
-A basic Flink cluster deployment in Kubernetes has three components:
+Kubernetes中的基本Flink集群部署包含三个组件:
 
-* a Deployment for a single Jobmanager
-* a Deployment for a pool of Taskmanagers
-* a Service exposing the Jobmanager's RPC and UI ports
+* 单个Jobmanager的部署
+* 一个Taskmanagers池的部署
+* 一个暴露Jobmanager的RPC和UI端口的服务
 
-### Launching the cluster
+### 启动群集
 
-Using the [resource definitions found below](#simple-kubernetes-flink-cluster-
-resources), launch the cluster with the `kubectl` command:
+使用 [resource definitions found below](#simple-kubernetes-flink-cluster-
+resources)，使用以下`kubectl`命令启动群集：
 
     kubectl create -f jobmanager-deployment.yaml
     kubectl create -f taskmanager-deployment.yaml
     kubectl create -f jobmanager-service.yaml
 
-You can then access the Flink UI via `kubectl proxy`:
+然后您可以通过`kubectl proxy`访问Flink UI：
 
-1. Run `kubectl proxy` in a terminal
-2. Navigate to [http://localhost:8001/api/v1/proxy/namespaces/default/services/flink-jobmanager:8081
+1. 在终端运行`kubectl proxy`
+2. 在你的浏览器中访问 [http://localhost:8001/api/v1/proxy/namespaces/default/services/flink-jobmanager:8081
 ](http://localhost:8001/api/v1/proxy/namespaces/default/services/flink-
-jobmanager:8081) in your browser
+jobmanager:8081) 
 
-### Deleting the cluster
+### 删除群集
 
-Again, use `kubectl` to delete the cluster:
+使用`kubectl`删除群集：
 
     kubectl delete -f jobmanager-deployment.yaml
     kubectl delete -f taskmanager-deployment.yaml
     kubectl delete -f jobmanager-service.yaml
 
-## Advanced Cluster Deployment
+## 高级群集部署
 
-An early version of a [Flink Helm chart](https://github.com/docker-flink/
-examples) is available on GitHub.
+在GitHub上有一个 [Flink Helm chart](https://github.com/docker-flink/
+examples) 的早期版本。
 
-## Appendix
+## 附录
 
-### Simple Kubernetes Flink cluster resources
+### 简单的Kubernetes Flink集群资源
 
 `jobmanager-deployment.yaml`
 {% highlight yaml %}

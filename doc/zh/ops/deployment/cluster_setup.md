@@ -24,7 +24,7 @@ under the License.
 
 本章介绍了如何在静态（但可能是异构）集群上以*完全分布式*的方式运行Flink。
 * This will be replaced by the TOC
-[toc]
+{:toc}
 
 ## 需求
 
