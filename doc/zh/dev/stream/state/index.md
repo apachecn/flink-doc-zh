@@ -25,10 +25,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-状态化函数与算子通过个体元素/事件来存储数据，这使得状态对于任何更加缜密的操作类型来说都是一个重要的组件。
-
-Stateful functions and operators store data across the processing of individual elements/events, making state a critical building block for
-any type of more elaborate operation.
+状态化functions与operators通过单个元素/事件来存储数据，这使得状态对于任何更加缜密类型的操作来说都是一个重要的组件。
 
 例如：
   - 当一个程序搜索确定的事件模式，状态将会存储当前为止发生的时间序列。
@@ -44,7 +41,7 @@ For example:
   - When training a machine learning model over a stream of data points, the state holds the current version of the model parameters.
   - When historic data needs to be managed, the state allows efficient access to events that occurred in the past.
 
-Flink需要感知状态，以便使用检查点来使得状态是容错的，同时允许了流式应用使用保存点
+Flink需要感知状态，以便使用 [checkpoints](checkpointing.html) 来使得状态是可容错的，同时允许了流式应用使用 [savepoints]({{ site.baseurl }}/ops/state/savepoints.html)
 Flink needs to be aware of the state in order to make state fault tolerant using [checkpoints](checkpointing.html) and to allow [savepoints]({{ site.baseurl }}/ops/state/savepoints.html) of streaming applications.
 
 关于状态的知识也允许对Flink应用进行再次扩展，这意味着Flink关心通过并行实例重新分配的状态。
