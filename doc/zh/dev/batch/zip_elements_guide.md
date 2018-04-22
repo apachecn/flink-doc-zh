@@ -1,5 +1,5 @@
 ---
-title: "Zipping Elements in a DataSet"
+title: "在数据集中 zip 元素"
 nav-title: Zipping Elements
 nav-parent_id: batch
 nav-pos: 2
@@ -23,17 +23,16 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-In certain algorithms, one may need to assign unique identifiers to data set elements.
-This document shows how {% gh_link /flink-java/src/main/java/org/apache/flink/api/java/utils/DataSetUtils.java "DataSetUtils" %} can be used for that purpose.
+在某些算法中，可能需要为数据集元素分配唯一的标识符。
+本文档展示了{% gh_link /flink-java/src/main/java/org/apache/flink/api/java/utils/DataSetUtils.java "DataSetUtils" %}实现此目的。
 
 * This will be replaced by the TOC
 {:toc}
 
 ### Zip with a Dense Index
-`zipWithIndex` assigns consecutive labels to the elements, receiving a data set as input and returning a new data set of `(unique id, initial value)` 2-tuples.
-This process requires two passes, first counting then labeling elements, and cannot be pipelined due to the synchronization of counts.
-The alternative `zipWithUniqueId` works in a pipelined fashion and is preferred when a unique labeling is sufficient.
-For example, the following code:
+`zipWithIndex`为元素分配连续的标签，接收一个数据集作为输入并返回一个新的（唯一id，初始值）二元组数据集。
+这个过程需要两遍，首先计算然后标记元素，并且由于计数的同步，不能被流水线化。
+另一种`zipWithUniqueId`可以流水线方式工作，并且在唯一标签足够的情况下是首选。例如，下面的代码：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -81,14 +80,13 @@ env.execute()
 
 </div>
 
-may yield the tuples: (0,G), (1,H), (2,A), (3,B), (4,C), (5,D), (6,E), (7,F)
+可能产生的元组: (0,G), (1,H), (2,A), (3,B), (4,C), (5,D), (6,E), (7,F)
 
 [Back to top](#top)
 
 ### Zip with a Unique Identifier
-In many cases one may not need to assign consecutive labels.
-`zipWithUniqueId` works in a pipelined fashion, speeding up the label assignment process. This method receives a data set as input and returns a new data set of `(unique id, initial value)` 2-tuples.
-For example, the following code:
+在很多情况下，可能不需要分配连续的标签。
+`zipWithUniqueId` 以流水线方式工作，加快了标签分配过程。该方法接收一个数据集作为输入，并返回一个新的（唯一id，初始值）2元组数据集。例如，下面的代码：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -121,7 +119,7 @@ env.execute()
 
 </div>
 
-may yield the tuples: (0,G), (1,A), (2,H), (3,B), (5,C), (7,D), (9,E), (11,F)
+可能产生的元组: (0,G), (1,A), (2,H), (3,B), (5,C), (7,D), (9,E), (11,F)
 
 [Back to top](#top)
 
