@@ -33,7 +33,7 @@ DataSet从某些数据源初始化(例如, 通过读取文件, 或者本地数�
 请参阅[基本概念]（{{site.baseurl}}/dev/api_concepts.html）以了解Flink API的基本概念。
 
 为了创建您自己的 Flink DataSet 程序, 我们鼓励您从 [Flink 程序的解刨]({{ site.baseurl }}/dev/api_concepts.html#anatomy-of-a-flink-program)开始
-并逐渐添加自己的 [transformations](#dataset-transformations)。其余部分充当其他操作和高级功能的参考。
+并逐渐添加自己的 [transformations](#dataset-transformations)。其余部分充当其他算子和高级功能的参考。
 
 * This will be replaced by the TOC
 {:toc}
@@ -1111,9 +1111,9 @@ Data Sinks
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
 
-Data sinks 消费 DataSets 并且 存储或者返回计算结果。 Data sink 操作使用
+Data sinks 消费 DataSets 并且 存储或者返回计算结果。 Data sink 算子使用
 {% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java "OutputFormat" %} 进行描述。
-Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet上的操作之后：
+Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet上的算子之后：
 
 - `writeAsText()` / `TextOutputFormat` - 将元素按行方式编写为字符串。字符串是通过调用每个元素的* toString()*方法获得的。
 - `writeAsFormattedText()` / `TextOutputFormat` -将元素按行方式编写为字符串。字符串是通过调用为每个元素自定义的* format()*方法获得的。
@@ -1123,7 +1123,7 @@ Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet�
 - `write()` / `FileOutputFormat` - 自定义文件输出的方法和基类。支持自定义对象到字节的转换。
 - `output()`/ `OutputFormat` - 对于非基于文件的data sink（例如将结果存储在数据库中），最通用的输出方法。
 
-DataSet可以输入到多个operation。程序可以输出或打印一个数据集，同时对它们进行额外的转换。
+DataSet可以输入到多个算子。程序可以输出或打印一个数据集，同时对它们进行额外的转换。
 
 
 **示例**
@@ -1208,9 +1208,9 @@ sData.sortPartition("*", Order.DESCENDING).writeAsText(...);
 
 </div>
 <div data-lang="scala" markdown="1">
-Data sinks 消费 DataSets 并且 存储或者返回计算结果。 Data sink 操作使用
+Data sinks 消费 DataSets 并且 存储或者返回计算结果。 Data sink 算子使用
 {% gh_link /flink-core/src/main/java/org/apache/flink/api/common/io/OutputFormat.java "OutputFormat" %} 进行描述。
-Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet上的操作之后：
+Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet上的算子之后：
 
 - `writeAsText()` / `TextOutputFormat` -  将元素按行方式编写为字符串。字符串是通过调用每个元素的* toString()*方法获得的。
 - `writeAsCsv(...)` / `CsvOutputFormat` - 将元组写为逗号分隔的值文件。行和字段分隔符是可配置的。每个字段的值来自对象的*toString()*方法。
@@ -1218,7 +1218,7 @@ Flink 内置了各种内置输出格式，这些输出格式被封装在DataSet�
 - `write()` / `FileOutputFormat` -自定义文件输出的方法和基类。支持自定义对象到字节的转换。
 - `output()`/ `OutputFormat` - 对于非基于文件的data sink（例如将结果存储在数据库中），最通用的输出方法。
 
-DataSet可以输入到多个operation。程序可以输出或打印一个数据集，同时对它们进行额外的转换。
+DataSet可以输入到多个算子。程序可以输出或打印一个数据集，同时对它们进行额外的转换。
 
 **示例**
 
@@ -1287,13 +1287,13 @@ sData.sortPartition("_", Order.DESCENDING).writeAsText(...)
 {% top %}
 
 
-Iteration Operators
+Iteration 算子
 -------------------
 
 Iterations 在Flink程序中实现循环。迭代运算符封装程序的一部分并重复执行它。
 将一次迭代的结果（部分解）反馈到下一次迭代中。Flink有两种类型的迭代：**BulkIteration**和**DeltaIteration**。
 
-本节提供了有关如何使用两个operators的简单示例。查看[迭代介绍](iterations.html)页面以获取更详细的介绍。
+本节提供了有关如何使用两个算子的简单示例。查看[迭代介绍](iterations.html)页面以获取更详细的介绍。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1301,7 +1301,7 @@ Iterations 在Flink程序中实现循环。迭代运算符封装程序的一部�
 #### Bulk Iterations
 
 为了创建一个BulkIteration调用，迭代应该从DataSet的iterate(int)方法开始。这将返回一个`IterativeDataSet`，
-它可以通过常规操作符进行转换。iterate(int)的单个参数指定最大迭代次数。
+它可以通过常规算子进行转换。iterate(int)的单个参数指定最大迭代次数。
 
 要指定迭代结束,调用IterativeDataSet上的`closeWith(DataSet)`方法来指定哪个变换应该反馈到下一次迭代。
 您可以选择使用`closeWith(DataSet,DataSet)`指定终止标准，如果此DataSet为空，则该标准将评估第二个DataSet并终止迭代。
@@ -1395,7 +1395,7 @@ iteration.closeWith(deltas, nextWorkset)
 要创建一个BulkIteration调用，迭代应该从DataSet的iterate(int)方法开始，同时指定一个step函数。
 step函数获取当前迭代的输入DataSet，并且必须返回一个新的DataSet。iterate(int)的参数是最大迭代次数。
 
-还有`iterateWithTermination(int)`函数接受一个返回两个数据集的步骤函数：迭代步骤的结果和终止标准。
+还有`iterateWithTermination(int)`函数接受一个返回两个数据集的阶梯函数：迭代步骤的结果和终止标准。
 一旦终止标准DataSet为空，迭代就会停止。
 
 以下示例迭代估计数字Pi。目标是计算落入单位圆圈的随机点的数量。在每次迭代中，挑选一个随机点。如果这一点位于单位圆内，
@@ -1683,11 +1683,11 @@ val myLongs = env.fromCollection(longIt)
 
 语义注解可以用来给Flink提示关于函数的行为。他们告诉系统，函数需要读取和计算的函数输入的哪些字段，
 以及哪些未经修改的字段从输入转发到输出。语义注解是加速执行的强大手段，
-因为它们允许系统推理重复使用多个操作中的排序顺序或分区。
+因为它们允许系统推理重复使用多个算子中的排序顺序或分区。
 使用语义标注最终可以避免不必要的数据混洗或不必要的排序，并显著提高程序的性能。
 
 **Note:**  语义注解的使用是可选的。但是，保守地使用语义注解至关重要！不正确的语义注解会导致Flink对您的程序做出不正确的判断。
-最终可能会导致错误的结果。如果operator的行为不能明确预测，则不应提供注释。请仔细阅读文档。
+最终可能会导致错误的结果。如果算子的行为不能明确预测，则不应提供注释。请仔细阅读文档。
 
 目前支持以下语义注解。
 
@@ -1708,7 +1708,7 @@ val myLongs = env.fromCollection(longIt)
 多个转发字段可以在单个字符串中声明，方法是用分号分隔为 `"f0; f2->f1; f3->f2"`或单独的字符串`"f0", "f2->f1", "f3->f2"`。
  指定转发字段时，不需要声明所有转发字段，但所有声明都必须正确。
 
-转发的字段信息可以通过在函数类定义上附加Java注解或在调用DataSet上的函数后将其作为 operator 参数传递来声明，如下所示。
+转发的字段信息可以通过在函数类定义上附加Java注解或在调用DataSet上的函数后将其作为算子参数传递来声明，如下所示。
 
 ##### 函数类注解
 
@@ -1716,13 +1716,13 @@ val myLongs = env.fromCollection(longIt)
 * `@ForwardedFieldsFirst` 用于具有两个输入的函数的第一个输入 如 Join 和 CoGroup。
 * `@ForwardedFieldsSecond` 用于具有两个输入的函数的第二个输入 如 Join 和 CoGroup。
 
-##### Operator 参数
+##### 算子参数
 
 * `data.map(myMapFnc).withForwardedFields()` 用于单个输入的函数，如 Map 和 Reduce。
 * `data1.join(data2).where().equalTo().with(myJoinFnc).withForwardFieldsFirst()` 用于具有两个输入的函数的第一个输入 如 Join 和 CoGroup。
 * `data1.join(data2).where().equalTo().with(myJoinFnc).withForwardFieldsSecond()` 用于具有两个输入的函数的第二个输入 如 Join 和 CoGroup。
 
-请注意，无法通过 operator 参数覆盖类注解的字段转发信息。
+请注意，无法通过 算子 参数覆盖类注解的字段转发信息。
 
 ##### 示例
 
@@ -1867,11 +1867,11 @@ class MyMap extends MapFunction[(Int, Int, Int, Int), (Int, Int)]{
 广播变量
 -------------------
 
-除了作为operator 的 常规输入外，广播变量还允许您为一个operator所有并行实例创建一个可靠的数据集。
-这对辅助数据集或数据相关参数化非常有用。数据集将作为集合在operator处被访问。
+除了作为算子的常规输入外，广播变量还允许您为一个算子所有并行实例创建一个可靠的数据集。
+这对辅助数据集或数据相关参数化非常有用。数据集将作为集合在算子处被访问。
 
 - **Broadcast**: 广播集是使用名称通过withBroadcastSet(DataSet,String)注册
-- **Access**: 广播变量在目标 operator中通过 `getRuntimeContext().getBroadcastVariable(String)`访问。
+- **Access**: 广播变量在目标算子中通过 `getRuntimeContext().getBroadcastVariable(String)`访问。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">

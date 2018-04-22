@@ -23,21 +23,18 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-This document gives a deep-dive into the available transformations on DataSets. For a general introduction to the
-Flink Java API, please refer to the [Programming Guide](index.html).
+本文深入介绍了DataSet上可用的转换。 有关Flink Java API的一般介绍，请参阅[编程指南](index.html)。
 
-For zipping elements in a data set with a dense index, please refer to the [Zip Elements Guide](zip_elements_guide.html).
+要在索引密集的数据集中 zip 元素，请参阅[Zip Elements Guide](zip_elements_guide.html)。
 
 * This will be replaced by the TOC
 {:toc}
 
 ### Map
 
-The Map transformation applies a user-defined map function on each element of a DataSet.
-It implements a one-to-one mapping, that is, exactly one element must be returned by
-the function.
+Map转换在DataSet的每个元素上应用用户定义的映射函数。它实现了一对一的映射，也就是说，函数必须返回一个元素。
 
-The following code transforms a DataSet of Integer pairs into a DataSet of Integers:
+以下代码将Integer对的DataSet转换为Integer的DataSet：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -76,10 +73,9 @@ val intSums = intPairs.map { pair => pair._1 + pair._2 }
 
 ### FlatMap
 
-The FlatMap transformation applies a user-defined flat-map function on each element of a DataSet.
-This variant of a map function can return arbitrary many result elements (including none) for each input element.
+FlatMap转换在DataSet的每个元素上应用自定义的 FlatMap 函数。 它（map函数的变体）可以为每个输入元素返回任意多个结果元素（包括none）。
 
-The following code transforms a DataSet of text lines into a DataSet of words:
+以下代码将基于文本行的DataSet转换为基于单词的DataSet：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -120,11 +116,11 @@ val words = textLines.flatMap { _.split(" ") }
 
 ### MapPartition
 
-MapPartition transforms a parallel partition in a single function call. The map-partition function
-gets the partition as Iterable and can produce an arbitrary number of result values. The number of elements in each partition depends on the degree-of-parallelism
-and previous operations.
+MapPartition在单个函数调用中转换一个并行分区。
+map-partition函数以Iterable的形式获取分区，并可以生成任意数量的结果值。
+每个分区中的元素数量取决于并行度和以前的算子。
 
-The following code transforms a DataSet of text lines into a DataSet of counts per partition:
+以下代码将基于文本行的DataSet转换为每个分区单词数的DataSet：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -168,9 +164,9 @@ val counts = texLines.mapPartition { in => Some(in.size) }
 
 ### Filter
 
-The Filter transformation applies a user-defined filter function on each element of a DataSet and retains only those elements for which the function returns `true`.
+Filter转换是在DataSet的每个元素上应用用户定义的过滤器函数，并仅保留函数返回`true`的元素。
 
-The following code removes all Integers smaller than zero from a DataSet:
+以下代码从DataSet中删除所有小于零的整数：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -207,17 +203,15 @@ val naturalNumbers = intNumbers.filter { _ > 0 }
 </div>
 </div>
 
-**IMPORTANT:** The system assumes that the function does not modify the elements on which the predicate is applied. Violating this assumption
-can lead to incorrect results.
+**IMPORTANT:** 系统假定该函数不会修改应用了谓词的元素。违反这一假设可能会导致错误的结果。
 
 ### Projection of Tuple DataSet
 
-The Project transformation removes or moves Tuple fields of a Tuple DataSet.
-The `project(int...)` method selects Tuple fields that should be retained by their index and defines their order in the output Tuple.
+Project转换会删除或移动元组数据集的元组字段。 project(int...)方法通过索引保留的Tuple字段，并在输出Tuple中定义它们的顺序。
 
-Projections do not require the definition of a user function.
+Projections  不需要自定义函数。
 
-The following code shows different ways to apply a Project transformation on a DataSet:
+以下代码显示了在DataSet上应用Project转换的不同方法：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -228,16 +222,16 @@ DataSet<Tuple3<Integer, Double, String>> in = // [...]
 DataSet<Tuple2<String, Integer>> out = in.project(2,0);
 ~~~
 
-#### Projection with Type Hint
+#### 带类型提示的Projection
 
-Note that the Java compiler cannot infer the return type of `project` operator. This can cause a problem if you call another operator on a result of `project` operator such as:
+请注意，Java编译器无法推断`project` operator 的返回类型。如果您对`project` operator 的结果调用另一个 operator，这会导致问题，例如：
 
 ~~~java
 DataSet<Tuple5<String,String,String,String,String>> ds = ....
 DataSet<Tuple1<String>> ds2 = ds.project(0).distinct(0);
 ~~~
 
-This problem can be overcome by hinting the return type of `project` operator like this:
+这个问题可以通过提示`project`运算符的返回类型来解决：
 
 ~~~java
 DataSet<Tuple1<String>> ds2 = ds.<Tuple1<String>>project(0).distinct(0);
@@ -260,36 +254,32 @@ out = in.project(2,0);
 </div>
 </div>
 
-### Transformations on Grouped DataSet
+### 分组数据集上的转换
 
-The reduce operations can operate on grouped data sets. Specifying the key to
-be used for grouping can be done in many ways:
+reduce算子可以在分组数据集上运行。指定要用于分组的 key 可以通过多种方式指定：
 
-- key expressions
-- a key-selector function
-- one or more field position keys (Tuple DataSet only)
-- Case Class fields (Case Classes only)
+- key 表达式
+- key-selector 函数
+- 一个或多个字段位置 (只适用于Tuple DataSet)
+- Case Class 字段 (只适用于Case Classes )
 
-Please look at the reduce examples to see how the grouping keys are specified.
 
-### Reduce on Grouped DataSet
 
-A Reduce transformation that is applied on a grouped DataSet reduces each group to a single
-element using a user-defined reduce function.
-For each group of input elements, a reduce function successively combines pairs of elements into one
-element until only a single element for each group remains.
+请查看关于reduce的示例以了解如何指定分组key。
 
-Note that for a `ReduceFunction` the keyed fields of the returned object should match the input
-values. This is because reduce is implicitly combinable and objects emitted from the combine
-operator are again grouped by key when passed to the reduce operator.
+### 在分组数据集上的Reduce
 
-#### Reduce on DataSet Grouped by Key Expression
+应用于分组数据集上的Reduce转换使用用户定义的reduce函数将每个组缩减为单个元素。
+对于每组输入元素，reduce函数将成对的元素连续组合为一个元素，直到每个组只剩下一个元素。
 
-Key expressions specify one or more fields of each element of a DataSet. Each key expression is
-either the name of a public field or a getter method. A dot can be used to drill down into objects.
-The key expression "*" selects all fields.
-The following code shows how to group a POJO DataSet using key expressions and to reduce it
-with a reduce function.
+请注意，对于`ReduceFunction` ，返回对象的key字段应与输入值的key匹配。这是因为reduce可以隐式组合，
+并且从合并operator发出的对象在传递给reduce算子时会再次按键分组。
+
+#### 按 key 表达式分组的数据集 Reduce
+
+Key 表达式可以指定DataSet的每个元素的一个或多个字段。每个key表达式都是public字段的名称或getter方法。
+点可以用来深入到对象中。 key表达式“*” 选择所有字段。以下代码显示了如何使用关key表达式对POJO DataSet进行分组，
+并使用reduce函数对其进行reduce计算。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -346,12 +336,10 @@ Not supported.
 </div>
 </div>
 
-#### Reduce on DataSet Grouped by KeySelector Function
+#### 按KeySelector函数分组的DataSet上的Reduce
 
-A key-selector function extracts a key value from each element of a DataSet. The extracted key
-value is used to group the DataSet.
-The following code shows how to group a POJO DataSet using a key-selector function and to reduce it
-with a reduce function.
+key-selector函数从DataSet的每个元素中提取键值。提取的键值用于对DataSet进行分组。
+以下代码显示了如何使用key-selector函数对POJO DataSet进行分组，并使用reduce函数对其进行reduce计算。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -422,10 +410,10 @@ wordCounts = words \
 </div>
 </div>
 
-#### Reduce on DataSet Grouped by Field Position Keys (Tuple DataSets only)
+#### 按字段位置 key 分组的数据集上的reduce（仅适用于元组数据集）
 
-Field position keys specify one or more fields of a Tuple DataSet that are used as grouping keys.
-The following code shows how to use field position keys and apply a reduce function
+字段位置key 指定元组数据集的一个或多个字段用作分组 key 。
+以下代码显示如何使用字段位置 key 并应用reduce函数
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -458,9 +446,9 @@ val reducedTuples = tuples.groupBy(0, 1).reduce { ... }
 </div>
 </div>
 
-#### Reduce on DataSet grouped by Case Class Fields
+#### 按Case Class 字段分组的数据集reduce
 
-When using Case Classes you can also specify the grouping key using the names of the fields:
+使用Case Classes 时，您可以使用字段的名称指定分组键：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -487,17 +475,15 @@ Not supported.
 </div>
 </div>
 
-### GroupReduce on Grouped DataSet
+### 分组数据集上的GroupReduce
 
-A GroupReduce transformation that is applied on a grouped DataSet calls a user-defined
-group-reduce function for each group. The difference
-between this and *Reduce* is that the user defined function gets the whole group at once.
-The function is invoked with an Iterable over all elements of a group and can return an arbitrary
-number of result elements.
+应用于分组数据集的 GroupReduce 为每个组调用自定义的 group-reduce 函数。
+这与Reduce的区别在于用户定义函数一次获取整个组。该函数在组的所有元素上使用Iterable进行调用，
+并且可以返回任意数量的结果元素。
 
-#### GroupReduce on DataSet Grouped by Field Position Keys (Tuple DataSets only)
+#### 按字段位置 key 分组的DataSet上的GroupReduce（仅适用于元组数据集）
 
-The following code shows how duplicate strings can be removed from a DataSet grouped by Integer.
+以下代码显示了如何从按Integer分组的数据集中删除重复的字符串。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -561,19 +547,19 @@ val output = input.groupBy(0).reduceGroup {
 </div>
 </div>
 
-#### GroupReduce on DataSet Grouped by Key Expression, KeySelector Function, or Case Class Fields
+#### 根据key表达式，KeySelector函数或Case Class字段分组的DataSet上的GroupReduce
 
-Work analogous to [key expressions](#reduce-on-dataset-grouped-by-key-expression),
-[key-selector functions](#reduce-on-dataset-grouped-by-keyselector-function),
-and [case class fields](#reduce-on-dataset-grouped-by-case-class-fields) in *Reduce* transformations.
+与通过[key表达式](#reduce-on-dataset-grouped-by-key-expression),
+[KeySelector函数](#reduce-on-dataset-grouped-by-keyselector-function),
+and [Case Class字段](#reduce-on-dataset-grouped-by-case-class-fields) 进行*Reduce* 转换计算类似。
 
 
-#### GroupReduce on sorted groups
+#### 对已排序的组进行GroupReduce
 
-A group-reduce function accesses the elements of a group using an Iterable. Optionally, the Iterable can hand out the elements of a group in a specified order. In many cases this can help to reduce the complexity of a user-defined
-group-reduce function and improve its efficiency.
+group-reduce函数使用Iterable访问组的元素。可选地，Iterable可以按照指定的顺序发布组的元素。
+在许多情况下，这可以帮助降低用户定义的group-reduce 函数的复杂性并提高效率。
 
-The following code shows another example how to remove duplicate Strings in a DataSet grouped by an Integer and sorted by String.
+以下代码显示了另一个示例，该示例说明如何删除由Integer分组并按字符串排序的DataSet中的重复字符串。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -645,17 +631,14 @@ val output = input.groupBy(0).sortGroup(1, Order.ASCENDING).reduceGroup {
 </div>
 </div>
 
-**Note:** A GroupSort often comes for free if the grouping is established using a sort-based execution strategy of an operator before the reduce operation.
+**Note:** 如果在reduce操作之前使用基于排序的执行策略建立的分组，则GroupSort一般是没开销的。
 
-#### Combinable GroupReduceFunctions
+#### 组合 GroupReduceFunctions
 
-In contrast to a reduce function, a group-reduce function is not
-implicitly combinable. In order to make a group-reduce function
-combinable it must implement the `GroupCombineFunction` interface.
+与reduce函数相比，group-reduce函数不是隐式组合的。
+为了使group-reduce 函数可组合，它必须实现GroupCombineFunction接口。
 
-**Important**: The generic input and output types of
-the `GroupCombineFunction` interface must be equal to the generic input type
-of the `GroupReduceFunction` as shown in the following example:
+**Important**: `GroupCombineFunction`接口的通用输入和输出类型必须等于`GroupReduceFunction`的通用输入类型，如以下示例所示：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -752,28 +735,19 @@ data.reduce_group(GroupReduce(), combinable=True)
 </div>
 </div>
 
-### GroupCombine on a Grouped DataSet
+### 分组数据集上的GroupCombine
 
-The GroupCombine transformation is the generalized form of the combine step in
-the combinable GroupReduceFunction. It is generalized in the sense that it
-allows combining of input type `I` to an arbitrary output type `O`. In contrast,
-the combine step in the GroupReduce only allows combining from input type `I` to
-output type `I`. This is because the reduce step in the GroupReduceFunction
-expects input type `I`.
+GroupCombine转换是可组合的GroupReduceFunction中组合步骤的一般形式。它的意义在于，
+它允许将输入类型`I` 与任意输出类型`O`相结合。相反，GroupReduce中的组合步骤仅允许从输入类型`I` 到输出类型`I` 的组合。
+这是因为GroupReduceFunction中的reduce步骤需要输入类型“I”。
 
-In some applications, it is desirable to combine a DataSet into an intermediate
-format before performing additional transformations (e.g. to reduce data
-size). This can be achieved with a CombineGroup transformation with very little
-costs.
+在某些应用程序中，希望在执行其他转换（例如reduce数据大小）之前将DataSet组合成中间格式。
+这可以通过CombineGroup转换以很低的成本实现。
 
-**Note:** The GroupCombine on a Grouped DataSet is performed in memory with a
-  greedy strategy which may not process all data at once but in multiple
-  steps. It is also performed on the individual partitions without a data
-  exchange like in a GroupReduce transformation. This may lead to partial
-  results.
+**Note:** 分组数据集上的GroupCombine在内存中以贪婪策略执行，该策略可能不会一次处理所有数据，而是以多个步骤处理。
+          它也可以在单个分区上执行，而无需像GroupReduce转换那样进行数据交换。这可能会导致部分结果。
 
-The following example demonstrates the use of a CombineGroup transformation for
-an alternative WordCount implementation.
+以下示例演示如何将CombineGroup转换用于实现WordCount。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -862,23 +836,21 @@ Not supported.
 </div>
 </div>
 
-The above alternative WordCount implementation demonstrates how the GroupCombine
-combines words before performing the GroupReduce transformation. The above
-example is just a proof of concept. Note, how the combine step changes the type
-of the DataSet which would normally require an additional Map transformation
-before executing the GroupReduce.
+以上替代WordCount实现演示GroupCombine在执行GroupReduce转换之前如何组合单词。
+上面的例子只是一个概念证明。请注意，组合步骤如何改变DataSet的类型，
+在执行GroupReduce之前通常需要额外的Map转换。
 
-### Aggregate on Grouped Tuple DataSet
+### 在分组元组数据集上的聚合操作
 
-There are some common aggregation operations that are frequently used. The Aggregate transformation provides the following build-in aggregation functions:
+有一些常用的 Aggregate  操作。 Aggregate 转换提供以下内置聚合函数：
 
 - Sum,
 - Min, and
 - Max.
 
-The Aggregate transformation can only be applied on a Tuple DataSet and supports only field position keys for grouping.
+Aggregate 转换只能应用于元组数据集，并且仅支持用字段位置 key来分组。
 
-The following code shows how to apply an Aggregation transformation on a DataSet grouped by field position keys:
+以下代码显示如何在按字段位置 key 分组的数据集上应用 Aggregation 转换：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -912,10 +884,10 @@ output = input.group_by(1).aggregate(Sum, 0).and_agg(Min, 2)
 </div>
 </div>
 
-To apply multiple aggregations on a DataSet it is necessary to use the `.and()` function after the first aggregate, that means `.aggregate(SUM, 0).and(MIN, 2)` produces the sum of field 0 and the minimum of field 2 of the original DataSet.
-In contrast to that `.aggregate(SUM, 0).aggregate(MIN, 2)` will apply an aggregation on an aggregation. In the given example it would produce the minimum of field 2 after calculating the sum of field 0 grouped by field 1.
+要在DataSet上应用多个聚合，那么在第一个聚合之后要使用`.and()`函数，这意味着`.aggregate(SUM, 0).and(MIN, 2)` 对原始数据集的字段0进行求和对字段2求最小值。
+相反， `.aggregate(SUM, 0).aggregate(MIN, 2)`将在聚合上在聚合。在给出的示例中，在计算按字段1分组对字段0求和之后，在产生字段2的最小值。
 
-**Note:** The set of aggregation functions will be extended in the future.
+**Note:** 聚合函数集将在未来扩展。
 
 ### MinBy / MaxBy on Grouped Tuple DataSet
 
@@ -953,12 +925,11 @@ Not supported.
 </div>
 </div>
 
-### Reduce on full DataSet
+### 在全数据集上Reduce计算
 
-The Reduce transformation applies a user-defined reduce function to all elements of a DataSet.
-The reduce function subsequently combines pairs of elements into one element until only a single element remains.
+Reduce转换将用户定义的reduce函数应用于DataSet的所有元素。reduce函数随后将成对的元素合并成一个元素，直到只剩下一个元素。
 
-The following code shows how to sum all elements of an Integer DataSet:
+以下代码显示了如何对整数数据集的所有元素求和：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -996,14 +967,14 @@ val sum = intNumbers.reduce (_ + _)
 </div>
 </div>
 
-Reducing a full DataSet using the Reduce transformation implies that the final Reduce operation cannot be done in parallel. However, a reduce function is automatically combinable such that a Reduce transformation does not limit scalability for most use cases.
+使用Reduce转换来对整个DataSet进行reduce计算意味着最终的Reduce操作不能并行执行。但是，reduce函数是自动组合的，因此Reduce转换不会限制大多数用例的可伸缩性。
 
-### GroupReduce on full DataSet
+### 在全数据集上进行GroupReduce
 
-The GroupReduce transformation applies a user-defined group-reduce function on all elements of a DataSet.
-A group-reduce can iterate over all elements of DataSet and return an arbitrary number of result elements.
+GroupReduce转换在DataSet的所有元素上应用自定义的group-reduce 函数。
+group-reduce可以迭代DataSet的所有元素并返回任意数量的结果元素。
 
-The following example shows how to apply a GroupReduce transformation on a full DataSet:
+以下示例显示如何在全数据集上应用GroupReduce转换：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1032,29 +1003,26 @@ val output = input.reduceGroup(new MyGroupReducer())
 </div>
 </div>
 
-**Note:** A GroupReduce transformation on a full DataSet cannot be done in parallel if the
-group-reduce function is not combinable. Therefore, this can be a very compute intensive operation.
-See the paragraph on "Combinable GroupReduceFunctions" above to learn how to implement a
-combinable group-reduce function.
+**Note:** 如果group-reduce函数不可组合，则整个DataSet上的GroupReduce转换不能并行完成。
+          因此，这可能是一个非常密集的计算操作。请参阅上文 “Combinable GroupReduceFunctions” 的段落，
+          以了解如何实现可组合的group-reduce函数。
 
 ### GroupCombine on a full DataSet
 
-The GroupCombine on a full DataSet works similar to the GroupCombine on a
-grouped DataSet. The data is partitioned on all nodes and then combined in a
-greedy fashion (i.e. only data fitting into memory is combined at once).
+全数据集上的GroupCombine与分组数据集上的GroupCombine类似。数据在所有节点上进行分区，
+然后以贪婪的方式进行组合（即只有拟合到内存中的数据被一次合并）。
 
-### Aggregate on full Tuple DataSet
+### 在全数据集上的Aggregate
 
-There are some common aggregation operations that are frequently used. The Aggregate transformation
-provides the following build-in aggregation functions:
+有一些常用的聚合操作。聚合转换提供以下内置聚合函数：
 
 - Sum,
 - Min, and
 - Max.
 
-The Aggregate transformation can only be applied on a Tuple DataSet.
+聚合转换只能应用于元组数据集。
 
-The following code shows how to apply an Aggregation transformation on a full DataSet:
+以下代码显示如何在完整的DataSet上应用聚合转换：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1088,13 +1056,13 @@ output = input.aggregate(Sum, 0).and_agg(Min, 2)
 </div>
 </div>
 
-**Note:** Extending the set of supported aggregation functions is on our roadmap.
+**Note:** 扩展支持的聚合函数集在我们的计划中。
 
-### MinBy / MaxBy on full Tuple DataSet
+### 在全元组数据集上的MinBy / MaxBy
 
-The MinBy (MaxBy) transformation selects a single tuple from a DataSet of tuples. The selected tuple is the tuple whose values of one or more specified fields are minimum (maximum). The fields which are used for comparison must be valid key fields, i.e., comparable. If multiple tuples have minimum (maximum) fields values, an arbitrary tuple of these tuples is returned.
+ MinBy (MaxBy) 变换从由元组组成的DataSet中选择一个元组。所选元组的一个或多个指定字段的值是在所有元组中最小（最大）。用于比较的字段必须是有效的字段，即可比较的字段。如果多个元组具有最小（最大）字段，则返回这些元组的任意元组。
 
-The following code shows how to select the tuple with the maximum values for the `Integer` and `Double` fields from a `DataSet<Tuple3<Integer, String, Double>>`:
+以下代码显示了如何从数据集`DataSet<Tuple3<Integer, String, Double>>`中选择具有 `Integer` 和 `Double`字段最大值的元组：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1126,8 +1094,8 @@ Not supported.
 
 ### Distinct
 
-The Distinct transformation computes the DataSet of the distinct elements of the source DataSet.
-The following code removes all duplicate elements from the DataSet:
+TDistinct转换对DataSet进行去重计算。
+以下代码从DataSet中删除所有重复的元素：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1157,13 +1125,13 @@ Not supported.
 </div>
 </div>
 
-It is also possible to change how the distinction of the elements in the DataSet is decided, using:
+还可以使用以下方法对DataSet中元素的进行去重：
 
-- one or more field position keys (Tuple DataSets only),
-- a key-selector function, or
-- a key expression.
+- 一个或多个字段位置上的key（仅适用于元组数据集），
+- 一个key-selector 函数，或者
+- 一个 key 表达式。
 
-#### Distinct with field position keys
+#### 使用field position keys 进行Distinct
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1193,7 +1161,7 @@ Not supported.
 </div>
 </div>
 
-#### Distinct with KeySelector function
+#### 使用KeySelector 函数 进行Distinct
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1230,7 +1198,7 @@ Not supported.
 </div>
 </div>
 
-#### Distinct with key expression
+#### 使用key expression 进行Distinct
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1270,7 +1238,7 @@ Not supported.
 </div>
 </div>
 
-It is also possible to indicate to use all the fields by the wildcard character:
+也可以通过通配符使用所有字段：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1303,20 +1271,20 @@ Not supported.
 
 ### Join
 
-The Join transformation joins two DataSets into one DataSet. The elements of both DataSets are joined on one or more keys which can be specified using
+Join 转换将两个数据集join成一个数据集。两个DataSet的元素可以使用一个或多个可以指定的key进行连接
 
-- a key expression
-- a key-selector function
-- one or more field position keys (Tuple DataSet only).
-- Case Class Fields
+- 一个 key expression
+- 一个 key-selector function
+- 一个或多个 field position keys (只适用于Tuple DataSet).
+- Case Class 字段
 
-There are a few different ways to perform a Join transformation which are shown in the following.
+有几种不同的方法可以执行Join转换，如下所示。
 
-#### Default Join (Join into Tuple2)
+#### 默认的 Join (Join into Tuple2)
 
-The default Join transformation produces a new Tuple DataSet with two fields. Each tuple holds a joined element of the first input DataSet in the first tuple field and a matching element of the second input DataSet in the second field.
+默认的Join转换产生一个带有两个字段的新的Tuple DataSet。每个元组保存第一个输入DataSet的联合元素和第二个输入DataSet的匹配元素。
 
-The following code shows a default Join transformation using field position keys:
+以下代码显示了使用 field position keys 来进行默认的Join转换：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1352,12 +1320,12 @@ val result = input1.join(input2).where(0).equalTo(1)
 </div>
 </div>
 
-#### Join with Join Function
+####  使用 Join Function 进行 Join 操作
 
-A Join transformation can also call a user-defined join function to process joining tuples.
-A join function receives one element of the first input DataSet and one element of the second input DataSet and returns exactly one element.
+Join转换还可以调用用户定义的连接函数来处理 join的元组。
+一个连接函数接收第一个输入DataSet的一个元素和第二个输入DataSet的一个元素，并返回一个元素。
 
-The following code performs a join of DataSet with custom java objects and a Tuple DataSet using key-selector functions and shows how to use a user-defined join function:
+以下代码使用key-selector 函数执行DataSet与自定义java对象和Tuple DataSet的连接，并演示如何使用用户定义的连接函数：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1428,11 +1396,9 @@ val weightedRatings = ratings.join(weights).where("category").equalTo(0) {
 </div>
 </div>
 
-#### Join with Flat-Join Function
+####  使用 Flat-Join Function进行Join
 
-Analogous to Map and FlatMap, a FlatJoin behaves in the same
-way as a Join, but instead of returning one element, it can
-return (collect), zero, one, or more elements.
+类似于Map和FlatMap，FlatJoin的行为方式与Join相同，但不是返回一个元素，而是返回（集合），零个，一个或多个元素。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1476,9 +1442,9 @@ Not supported.
 </div>
 </div>
 
-#### Join with Projection (Java/Python Only)
+####  使用 Projection (只适用于Java/Python )进行Join
 
-A Join transformation can construct result tuples using a projection as shown here:
+Join转换可以使用 projection 构造结果元组，如下所示：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1497,8 +1463,9 @@ DataSet<Tuple4<Integer, String, Double, Byte>
                   .projectFirst(0,2).projectSecond(1).projectFirst(1);
 ~~~
 
-`projectFirst(int...)` and `projectSecond(int...)` select the fields of the first and second joined input that should be assembled into an output Tuple. The order of indexes defines the order of fields in the output tuple.
-The join projection works also for non-Tuple DataSets. In this case, `projectFirst()` or `projectSecond()` must be called without arguments to add a joined element to the output Tuple.
+`projectFirst(int...)`和`projectSecond(int...)`选择应该组合成输出元组的第一个和第二个连接输入的字段。
+索引的顺序定义了输出元组中字段的顺序。 join projection也适用于非元组数据集。
+在这种情况下，必须调用不带参数的`projectFirst()` 或`projectSecond()`才能将联合元素添加到输出元组中。
 
 </div>
 <div data-lang="scala" markdown="1">
@@ -1515,15 +1482,16 @@ Not supported.
   .project_first(0,2).project_second(1).project_first(1);
 ~~~
 
-`project_first(int...)` and `project_second(int...)` select the fields of the first and second joined input that should be assembled into an output Tuple. The order of indexes defines the order of fields in the output tuple.
-The join projection works also for non-Tuple DataSets. In this case, `project_first()` or `project_second()` must be called without arguments to add a joined element to the output Tuple.
+`projectFirst(int...)`和`projectSecond(int...)`选择应该组合成输出元组的第一个和第二个连接输入的字段。
+索引的顺序定义了输出元组中字段的顺序。 join projection也适用于非元组数据集。
+在这种情况下，必须调用不带参数的`projectFirst()` 或`projectSecond()`才能将联合元素添加到输出元组中。
 
 </div>
 </div>
 
-#### Join with DataSet Size Hint
+#### 使用DataSet Size Hint进行Join
 
-In order to guide the optimizer to pick the right execution strategy, you can hint the size of a DataSet to join as shown here:
+为了引导优化器选择正确的执行策略，您可以提示要加入的DataSet的大小，如下所示：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1578,11 +1546,10 @@ val result1 = input1.joinWithHuge(input2).where(0).equalTo(0)
 </div>
 </div>
 
-#### Join Algorithm Hints
+#### 使用Algorithm Hints进行Join
 
-The Flink runtime can execute joins in various ways. Each possible way outperforms the others under
-different circumstances. The system tries to pick a reasonable way automatically, but allows you
-to manually pick a strategy, in case you want to enforce a specific way of executing the join.
+Flink运行时可以以各种方式执行 join 。在不同的情况下，每种可能的方式都胜过其他方式。
+系统会尝试自动选择合理的方式，但如果您想强制执行join的特定方式，则允许您手动选择策略。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1618,52 +1585,46 @@ Not supported.
 </div>
 </div>
 
-The following hints are available:
+以下hints可用：
 
-* `OPTIMIZER_CHOOSES`: Equivalent to not giving a hint at all, leaves the choice to the system.
+* `OPTIMIZER_CHOOSES`: 相当于根本不给提示，将选择权留给系统。
 
-* `BROADCAST_HASH_FIRST`: Broadcasts the first input and builds a hash table from it, which is
-  probed by the second input. A good strategy if the first input is very small.
+* `BROADCAST_HASH_FIRST`: 广播第一个输入并从中建立一个哈希表，由第二个输入进行探测。当第一个输入是非常小的时候，这是一个好的策略。
 
-* `BROADCAST_HASH_SECOND`: Broadcasts the second input and builds a hash table from it, which is
-  probed by the first input. A good strategy if the second input is very small.
+* `BROADCAST_HASH_SECOND`: 广播第二个输入并从中建立一个哈希表，由第第个输入进行探测。当第二个输入是非常小的时候，这是一个好的策略。
 
-* `REPARTITION_HASH_FIRST`: The system partitions (shuffles) each input (unless the input is already
-  partitioned) and builds a hash table from the first input. This strategy is good if the first
-  input is smaller than the second, but both inputs are still large.
-  *Note:* This is the default fallback strategy that the system uses if no size estimates can be made
-  and no pre-existing partitions and sort-orders can be re-used.
+* `REPARTITION_HASH_FIRST`: 系统对每个输入进行分区（shuffles）（除非输入已经分区），并从第一个输入构建一个散列表。
+                            如果第一个输入小于第二个输入，并且这两个输入仍然很大，则此策略很好。
+                            注意：这是系统使用的默认回退策略，如果不能进行大小估计并且不能重新使用预先存在的分区和排序。
 
-* `REPARTITION_HASH_SECOND`: The system partitions (shuffles) each input (unless the input is already
-  partitioned) and builds a hash table from the second input. This strategy is good if the second
-  input is smaller than the first, but both inputs are still large.
+* `REPARTITION_HASH_SECOND`:系统对每个输入进行分区（shuffles）（除非输入已经被分区）并且从第二个输入建立一个散列表。
+                            如果第二个输入小于第一个输入，并且这两个输入仍然很大，则此策略很好。
 
-* `REPARTITION_SORT_MERGE`: The system partitions (shuffles) each input (unless the input is already
-  partitioned) and sorts each input (unless it is already sorted). The inputs are joined by
-  a streamed merge of the sorted inputs. This strategy is good if one or both of the inputs are
-  already sorted.
+* `REPARTITION_SORT_MERGE`: 系统对每个输入进行分区（shuffles）（除非输入已被分区）并对每个输入进行排序（除非它已被排序）。
+                            输入通过一个已排序输入的streamed merge来连接。 如果其中一个或两个输入已经排序，则该策略是好的。
 
 
 ### OuterJoin
 
-The OuterJoin transformation performs a left, right, or full outer join on two data sets. Outer joins are similar to regular (inner) joins and create all pairs of elements that are equal on their keys. In addition, records of the "outer" side (left, right, or both in case of full) are preserved if no matching key is found in the other side. Matching pair of elements (or one element and a `null` value for the other input) are given to a `JoinFunction` to turn the pair of elements into a single element, or to a `FlatJoinFunction` to turn the pair of elements into arbitrarily many (including none) elements.
+OuterJoin转换在两个数据集上执行左，右或全外连接。外部连接与常规（内部）连接类似，并创建所有在其键上相同的元素对。另外，如果在另一侧没有找到匹配的键，则保留“outer”侧（左侧，右侧或两者都满）的记录。匹配一对元素（或一个元素和另一个输入的null 值）被赋予JoinFunction以将该对元素转换为单个元素或FlatJoinFunction以将该对元素变为任意多个（包括你none）元素。
 
-The elements of both DataSets are joined on one or more keys which can be specified using
+两个DataSet的元素都可以使用一个或多个可以指定的key进行连接
 
-- a key expression
-- a key-selector function
-- one or more field position keys (Tuple DataSet only).
-- Case Class Fields
+- 一个 key expression
+- 一个 key-selector 函数
+- 一个或多个 field position keys (只适用于Tuple DataSet).
+- Case Class 字段
 
-**OuterJoins are only supported for the Java and Scala DataSet API.**
+**OuterJoins 只支持 Java 和 Scala DataSet API.**
 
 
-#### OuterJoin with Join Function
+####  通过 Join 函数 进行OuterJoin
 
-A OuterJoin transformation calls a user-defined join function to process joining tuples.
-A join function receives one element of the first input DataSet and one element of the second input DataSet and returns exactly one element. Depending on the type of the outer join (left, right, full) one of both input elements of the join function can be `null`.
 
-The following code performs a left outer join of DataSet with custom java objects and a Tuple DataSet using key-selector functions and shows how to use a user-defined join function:
+OuterJoin转换调用用户定义的连接函数来处理连接的元组。一个连接函数接收第一个输入DataSet的一个元素和第二个输入DataSet的一个元素，并返回一个元素。根据外连接的类型(left, right, full) ，连接函数的两个输入元素之一可以为null。
+
+
+以下代码使用  key-selector 函数执行自定义java对象DataSet和Tuple DataSet的左外部联接 ，并演示如何使用用户定义的 join 函数：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1728,11 +1689,9 @@ Not supported.
 </div>
 </div>
 
-#### OuterJoin with Flat-Join Function
+#### 通过 Flat-Join 函数 进行OuterJoin
 
-Analogous to Map and FlatMap, an OuterJoin with flat-join function behaves in the same
-way as an OuterJoin with join function, but instead of returning one element, it can
-return (collect), zero, one, or more elements.
+类似于Map和FlatMap，具有 flat-join函数的OuterJoin的行为与具有 join函数的OuterJoin的行为相同，但是不是返回一个元素，而是返回（集合）零个，一个或多个元素。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1776,9 +1735,7 @@ Not supported.
 
 #### Join Algorithm Hints
 
-The Flink runtime can execute outer joins in various ways. Each possible way outperforms the others under
-different circumstances. The system tries to pick a reasonable way automatically, but allows you
-to manually pick a strategy, in case you want to enforce a specific way of executing the outer join.
+Flink运行时可以以各种方式执行外部连接。在不同的情况下，每种可能的方式都胜过其他方式。系统会自动尝试选择合理的方式，但如果您想强制执行外部联接的特定方式，则允许您手动选择策略。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1822,28 +1779,22 @@ Not supported.
 
 The following hints are available.
 
-* `OPTIMIZER_CHOOSES`: Equivalent to not giving a hint at all, leaves the choice to the system.
+* `OPTIMIZER_CHOOSES`: 相当于根本不给提示，将选择权留给系统。
 
-* `BROADCAST_HASH_FIRST`: Broadcasts the first input and builds a hash table from it, which is
-  probed by the second input. A good strategy if the first input is very small.
+* `BROADCAST_HASH_FIRST`:广播第一个输入并从中建立一个哈希表，由第二个输入进行探测。当第一个输入是非常小的时候，这是一个好的策略。
 
-* `BROADCAST_HASH_SECOND`: Broadcasts the second input and builds a hash table from it, which is
-  probed by the first input. A good strategy if the second input is very small.
+* `BROADCAST_HASH_SECOND`: 广播第二个输入并从中建立一个哈希表，由第第个输入进行探测。当第二个输入是非常小的时候，这是一个好的策略。
 
-* `REPARTITION_HASH_FIRST`: The system partitions (shuffles) each input (unless the input is already
-  partitioned) and builds a hash table from the first input. This strategy is good if the first
-  input is smaller than the second, but both inputs are still large.
+* `REPARTITION_HASH_FIRST`: 系统对每个输入进行分区（shuffles）（除非输入已经分区），并从第一个输入构建一个散列表。
+                            如果第一个输入小于第二个输入，并且这两个输入仍然很大，则此策略很好。
 
-* `REPARTITION_HASH_SECOND`: The system partitions (shuffles) each input (unless the input is already
-  partitioned) and builds a hash table from the second input. This strategy is good if the second
-  input is smaller than the first, but both inputs are still large.
+* `REPARTITION_HASH_SECOND`: 系统对每个输入进行分区（shuffles）（除非输入已经被分区）并且从第二个输入建立一个散列表。
+                             如果第二个输入小于第一个输入，并且这两个输入仍然很大，则此策略很好。
 
-* `REPARTITION_SORT_MERGE`: The system partitions (shuffles) each input (unless the input is already
-  partitioned) and sorts each input (unless it is already sorted). The inputs are joined by
-  a streamed merge of the sorted inputs. This strategy is good if one or both of the inputs are
-  already sorted.
+* `REPARTITION_SORT_MERGE`: 系统对每个输入进行分区（shuffles）（除非输入已被分区）并对每个输入进行排序（除非它已被排序）。
+                            输入通过一个已排序输入的streamed merge来连接。 如果其中一个或两个输入已经排序，则该策略是好的。
 
-**NOTE:** Not all execution strategies are supported by every outer join type, yet.
+**NOTE:** 不是所有的执行策略都受到每个OuterJoin类型的支持。
 
 * `LeftOuterJoin` supports:
   * `OPTIMIZER_CHOOSES`
@@ -1864,16 +1815,16 @@ The following hints are available.
 
 ### Cross
 
-The Cross transformation combines two DataSets into one DataSet. It builds all pairwise combinations of the elements of both input DataSets, i.e., it builds a Cartesian product.
-The Cross transformation either calls a user-defined cross function on each pair of elements or outputs a Tuple2. Both modes are shown in the following.
+Cross 转换将两个数据集组合成一个数据集。它构建了两个输入数据集的所有成对组合，即它构建了一个笛卡尔积。Cross 转换要么在每对元素上调用用户定义的交叉函数，要么输出一个Tuple2。
+两种模式如下所示。
 
-**Note:** Cross is potentially a *very* compute-intensive operation which can challenge even large compute clusters!
+**Note:** Cross可能是一个*非常*计算密集型的操作，它甚至可以挑战大型计算集群！
 
-#### Cross with User-Defined Function
+####  带自定义函数的Cross
 
-A Cross transformation can call a user-defined cross function. A cross function receives one element of the first input and one element of the second input and returns exactly one result element.
+Cross转换可以调用用户定义的Cross函数。 Cross函数接收第一个输入的一个元素和第二个输入的一个元素，并返回一个结果元素。
 
-The following code shows how to apply a Cross transformation on two DataSets using a cross function:
+以下代码显示了如何使用Cross函数对两个数据集应用Cross转换：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1906,9 +1857,9 @@ DataSet<Tuple3<Integer, Integer, Double>>
                    .with(new EuclideanDistComputer());
 ~~~
 
-#### Cross with Projection
+####  带 Projection 的 Cross
 
-A Cross transformation can also construct result tuples using a projection as shown here:
+Cross 转换也可以使用 projection  构造结果元组，如下所示：
 
 ~~~java
 DataSet<Tuple3<Integer, Byte, String>> input1 = // [...]
@@ -1920,7 +1871,7 @@ DataSet<Tuple4<Integer, Byte, Integer, Double>
                   .projectSecond(0).projectFirst(1,0).projectSecond(1);
 ~~~
 
-The field selection in a Cross projection works the same way as in the projection of Join results.
+Cross projection 中的字段选择与Join结果的 projection 方式相同。
 
 </div>
 <div data-lang="scala" markdown="1">
@@ -1950,22 +1901,22 @@ val distances = coords1.cross(coords2) {
  distances = coords1.cross(coords2).using(Euclid())
 ~~~
 
-#### Cross with Projection
+#### 带 Projection 的 Cross
 
-A Cross transformation can also construct result tuples using a projection as shown here:
+Cross 转换也可以使用 projection  构造结果元组，如下所示：
 
 ~~~python
 result = input1.cross(input2).projectFirst(1,0).projectSecond(0,1);
 ~~~
 
-The field selection in a Cross projection works the same way as in the projection of Join results.
+Cross projection 中的字段选择与Join结果的 projection 方式相同。
 
 </div>
 </div>
 
-#### Cross with DataSet Size Hint
+####  带 DataSet Size Hint的Cross
 
-In order to guide the optimizer to pick the right execution strategy, you can hint the size of a DataSet to cross as shown here:
+为了引导优化器选择正确的执行策略，可以提示DataSet的大小，如下所示：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2021,17 +1972,17 @@ val result1 = input1.crossWithHuge(input2)
 
 ### CoGroup
 
-The CoGroup transformation jointly processes groups of two DataSets. Both DataSets are grouped on a defined key and groups of both DataSets that share the same key are handed together to a user-defined co-group function. If for a specific key only one DataSet has a group, the co-group function is called with this group and an empty group.
-A co-group function can separately iterate over the elements of both groups and return an arbitrary number of result elements.
+CoGroup转换共同处理两个DataSet的组。两个数据集都被分组到一个定义的键上，并且共享相同键的两个数据组的组被共同递交给用户定义的co-group函数。
+如果对于特定的键只有一个数据集有一个组，则共同组功能用这个组和一个空组来调用。co-group 函数可以分别遍历两个组的元素并返回任意数量的结果元素。
 
-Similar to Reduce, GroupReduce, and Join, keys can be defined using the different key-selection methods.
+与Reduce, GroupReduce, 和 Join 相似， keys可以通过不同的 key-selection 方法定。
 
-#### CoGroup on DataSets
+#### 在DataSets上的CoGroup
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
 
-The example shows how to group by Field Position Keys (Tuple DataSets only). You can do the same with Pojo-types and key expressions.
+该示例显示如何按Field Position Keys（仅Tuple DataSets）进行分组。您可以对Pojo类型和key expressions进行相同的操作。
 
 ~~~java
 // Some CoGroupFunction definition
@@ -2115,7 +2066,7 @@ val output = iVals.coGroup(dVals).where(0).equalTo(0) {
 
 ### Union
 
-Produces the union of two DataSets, which have to be of the same type. A union of more than two DataSets can be implemented with multiple union calls, as shown here:
+生成两个DataSet的union ，它们必须是相同的类型。 超过两个数据集的union 可以用多个union 调用实现，如下所示：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2149,7 +2100,7 @@ val unioned = vals1.union(vals2).union(vals3)
 </div>
 
 ### Rebalance
-Evenly rebalances the parallel partitions of a DataSet to eliminate data skew.
+均匀重新平衡DataSet的并行分区以消除数据倾斜。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2183,8 +2134,9 @@ Not supported.
 
 ### Hash-Partition
 
-Hash-partitions a DataSet on a given key.
-Keys can be specified as position keys, expression keys, and key selector functions (see [Reduce examples](#reduce-on-grouped-dataset) for how to specify keys).
+
+通过数据集上给定的key进行Hash-partitions。
+key可以为position keys，expression keys和 key selector functions （请参阅 [Reduce 示例](#reduce-on-grouped-dataset) 以了解如何指定键）。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2217,8 +2169,9 @@ Not supported.
 
 ### Range-Partition
 
-Range-partitions a DataSet on a given key.
-Keys can be specified as position keys, expression keys, and key selector functions (see [Reduce examples](#reduce-on-grouped-dataset) for how to specify keys).
+
+通过数据集上给定的key进行Range-partitions。
+key可以为position keys，expression keys和 key selector functions （请参阅 [Reduce 示例](#reduce-on-grouped-dataset) 以了解如何指定键）。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2252,9 +2205,9 @@ Not supported.
 
 ### Sort Partition
 
-Locally sorts all partitions of a DataSet on a specified field in a specified order.
-Fields can be specified as field expressions or field positions (see [Reduce examples](#reduce-on-grouped-dataset) for how to specify keys).
-Partitions can be sorted on multiple fields by chaining `sortPartition()` calls.
+在指定的字段中按指定的顺序在本地对DataSet的所有分区进行排序。
+可以将字段指定为字段表达式或字段位置（请参阅 [Reduce 示例](#reduce-on-grouped-dataset)以了解如何指定键）。
+可以通过多次`sortPartition()` 调用将分区排序用在多个字段上。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -2294,7 +2247,7 @@ Not supported.
 
 ### First-n
 
-Returns the first n (arbitrary) elements of a DataSet. First-n can be applied on a regular DataSet, a grouped DataSet, or a grouped-sorted DataSet. Grouping keys can be specified as key-selector functions or field position keys (see [Reduce examples](#reduce-on-grouped-dataset) for how to specify keys).
+返回DataSet的前n个（任意）元素。First-n可以应用于常规的DataSet，分组的DataSet或分组排序的DataSet。分组键可以指定为key-selector 函数或key-selector（请参阅[Reduce 示例](#reduce-on-grouped-dataset) 以了解如何指定键）。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">

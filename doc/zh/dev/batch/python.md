@@ -24,26 +24,20 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-Analysis programs in Flink are regular programs that implement transformations on data sets
-(e.g., filtering, mapping, joining, grouping). The data sets are initially created from certain
-sources (e.g., by reading files, or from collections). Results are returned via sinks, which may for
-example write the data to (distributed) files, or to standard output (for example the command line
-terminal). Flink programs run in a variety of contexts, standalone, or embedded in other programs.
-The execution can happen in a local JVM, or on clusters of many machines.
+Flink中的分析程序是实施数据集转换（例如filtering, mapping, joining, grouping）的常规程序。
+数据集最初是从某些来源创建的（例如，通过读取文件或从集合中创建）。结果通过 sink 返回，例如可以将数据写入（分布式）文件，或者写入标准输出（例如命令行终端）。
+Flink程序可以在各种情况下运行，可以独立运行，也可以嵌入其他程序中。执行可以发生在本地JVM或许多机器的集群中。
 
-In order to create your own Flink program, we encourage you to start with the
-[program skeleton](#program-skeleton) and gradually add your own
-[transformations](#transformations). The remaining sections act as references for additional
-operations and advanced features.
+为了创建您自己的Flink程序，我们鼓励您从[程序骨架](#program-skeleton)开始，逐步添加自己的[transformations](#transformations)。
+其余部分充当其他算子和高级功能的参考。
 
 * This will be replaced by the TOC
 {:toc}
 
-Example Program
+示例程序
 ---------------
 
-The following program is a complete, working example of WordCount. You can copy &amp; paste the code
-to run it locally.
+以下程序是WordCount的完整工作示例。您可以复制并粘贴代码以在本地运行。
 
 {% highlight python %}
 from flink.plan.Environment import get_environment
@@ -70,57 +64,51 @@ env.execute(local=True)
 
 {% top %}
 
-Program Skeleton
+程序骨架
 ----------------
 
-As we already saw in the example, Flink programs look like regular python programs.
-Each program consists of the same basic parts:
+正如我们在例子中已经看到的，Flink程序看起来像普通的Python程序。
+每个程序由相同的基本部分组成：
 
-1. Obtain an `Environment`,
-2. Load/create the initial data,
-3. Specify transformations on this data,
-4. Specify where to put the results of your computations, and
-5. Execute your program.
+1. 获取一个 `Environment`,
+2. 加载/创建 初始数据,
+3. 指定此数据的transformations,
+4. 指定放置计算结果的位置, 并且
+5. 执行你的程序。
 
-We will now give an overview of each of those steps but please refer to the respective sections for
-more details.
+我们现在将对每个步骤进行概述，但请参阅各个部分了解更多详细信息。
 
 
-The `Environment` is the basis for all Flink programs. You can
-obtain one using these static methods on class `Environment`:
+ `Environment` 对于所有 Flink 程序来说是最基础的。你可以在`Environment`类上使用这些静态方法获得一个：
 
 {% highlight python %}
 get_environment()
 {% endhighlight %}
 
-For specifying data sources the execution environment has several methods
-to read from files. To just read a text file as a sequence of lines, you can use:
+为了指定数据源，执行环境有几种从文件读取的方法。
+要仅将文本文件作为一系列行读取，可以使用：
 
 {% highlight python %}
 env = get_environment()
 text = env.read_text("file:///path/to/file")
 {% endhighlight %}
 
-This will give you a DataSet on which you can then apply transformations. For
-more information on data sources and input formats, please refer to
-[Data Sources](#data-sources).
+这会给你一个DataSet，然后你可以应用转换。 有关数据源和输入格式的更多信息，
+请参阅[Data Sources](#data-sources)。
 
-Once you have a DataSet you can apply transformations to create a new
-DataSet which you can then write to a file, transform again, or
-combine with other DataSets. You apply transformations by calling
-methods on DataSet with your own custom transformation function. For example,
-a map transformation looks like this:
+
+一旦你有了一个DataSet，你可以应用转换来创建一个新的DataSet，然后你可以写入一个文件，再次转换或与其他DataSet结合。
+您可以使用您自己的自定义转换函数通过调用DataSet上的方法来应用转换。 例如，Map转换如下所示：
 
 {% highlight python %}
 data.map(lambda x: x*2)
 {% endhighlight %}
 
-This will create a new DataSet by doubling every value in the original DataSet.
-For more information and a list of all the transformations,
-please refer to [Transformations](#transformations).
+这将通过将原始DataSet中的每个值加倍来创建一个新的DataSet。
+有关更多信息和所有转换的列表，请参阅[Transformations](#transformations)。
 
-Once you have a DataSet that needs to be written to disk you can call one
-of these methods on DataSet:
+
+一旦你有一个需要被写入磁盘的数据集，你可以在DataSet上调用其中的一个方法：
 
 {% highlight python %}
 data.write_text("<file-path>", WriteMode=Constants.NO_OVERWRITE)
@@ -128,42 +116,37 @@ write_csv("<file-path>", line_delimiter='\n', field_delimiter=',', write_mode=Co
 output()
 {% endhighlight %}
 
-The last method is only useful for developing/debugging on a local machine,
-it will output the contents of the DataSet to standard output. (Note that in
-a cluster, the result goes to the standard out stream of the cluster nodes and ends
-up in the *.out* files of the workers).
-The first two do as the name suggests.
-Please refer to [Data Sinks](#data-sinks) for more information on writing to files.
 
-Once you specified the complete program you need to call `execute` on
-the `Environment`. This will either execute on your local machine or submit your program
-for execution on a cluster, depending on how Flink was started. You can force
-a local execution by using `execute(local=True)`.
+最后一种方法只对本地机器上的开发/调试很有用，它会将DataSet的内容输出到标准输出。
+（请注意，在群集中，结果将转到群集节点的标准输出流，并结束于worker节点的*.out* 文件中）。
+前两个顾名思义。 有关写入文件的更多信息，请参阅[Data Sinks](#data-sinks)。
+
+
+一旦你指定完整的程序，你需要调用环境上的执行。
+这可以在您的本地机器上执行，也可以将您的程序提交给群集执行，具体取决于Flink的启动方式。
+您可以使用`execute(local=True)`强制执行本地执行。
 
 {% top %}
 
 Project setup
 ---------------
 
-Apart from setting up Flink, no additional work is required. The python package can be found in the /resource folder of your Flink distribution. The flink package, along with the plan and optional packages are automatically distributed among the cluster via HDFS when running a job.
+除了设置Flink之外，不需要额外的工作。python包可以在Flink发行版的/resource文件夹中找到。运行作业时，flink软件包以及计划和可选软件包将通过HDFS自动分发到群集中。
 
-The Python API was tested on Linux/Windows systems that have Python 2.7 or 3.4 installed.
+Python API已在安装了Python 2.7或3.4的Linux / Windows系统上进行测试。
 
-By default Flink will start python processes by calling "python". By setting the "python.binary.path" key in the flink-conf.yaml you can modify this behaviour to use a binary of your choice.
+默认情况下，Flink将通过调用“python”来启动python进程。通过设置flink-conf.yaml中的“python.binary.path”键，您可以修改此行为以使用您选择的二进制文件。
 
 {% top %}
 
 Lazy Evaluation
 ---------------
 
-All Flink programs are executed lazily: When the program's main method is executed, the data loading
-and transformations do not happen directly. Rather, each operation is created and added to the
-program's plan. The operations are actually executed when one of the `execute()` methods is invoked
-on the Environment object. Whether the program is executed locally or on a cluster depends
-on the environment of the program.
+所有Flink程序都会被懒执行：当程序的主要方法被执行时，数据加载和转换不会直接发生。
+相反，每个算子都会创建并添加到程序的计划中。当在Environment对象上调用一个`execute()`方法时，这些算子实际上被执行。
+程序是在本地执行还是在群集上执行取决于程序的环境。
 
-The lazy evaluation lets you construct sophisticated programs that Flink executes as one
-holistically planned unit.
+lazy evaluation 让您可以构建Flink作为整体计划单元执行的复杂程序。
 
 {% top %}
 
@@ -171,12 +154,10 @@ holistically planned unit.
 Transformations
 ---------------
 
-Data transformations transform one or more DataSets into a new DataSet. Programs can combine
-multiple transformations into sophisticated assemblies.
+Data transformations将一个或多个数据集转换为新的数据集。 程序可以将多个转换组合到复杂的程序集中。
 
-This section gives a brief overview of the available transformations. The [transformations
-documentation](dataset_transformations.html) has a full description of all transformations with
-examples.
+
+本节简要介绍可用的transformations。[transformations 文档](dataset_transformations.html)用示例详细描述了所有transformations。
 
 <br />
 
@@ -343,9 +324,8 @@ data.zip_with_index()
 Specifying Keys
 -------------
 
-Some transformations (like Join or CoGroup) require that a key is defined on
-its argument DataSets, and other transformations (Reduce, GroupReduce) allow that the DataSet is grouped on a key before they are
-applied.
+某些转换（如Join或CoGroup）要求在其参数DataSets上定义一个键，
+而其他转换（Reduce，GroupReduce）则允许DataSet在应用之前在键上进行分组。
 
 A DataSet is grouped as
 {% highlight python %}
@@ -354,25 +334,21 @@ reduced = data \
   .reduce_group(<do something>)
 {% endhighlight %}
 
-The data model of Flink is not based on key-value pairs. Therefore,
-you do not need to physically pack the data set types into keys and
-values. Keys are "virtual": they are defined as functions over the
-actual data to guide the grouping operator.
+Flink的数据模型不基于键值对。因此，您不需要将数据集类型物理地打包成键和值。
+建是“虚拟的”：它们被定义为实际数据上的函数来指导分组算子。
 
-### Define keys for Tuples
+###为Tuples定义key
 {:.no_toc}
 
-The simplest case is grouping a data set of Tuples on one or more
-fields of the Tuple:
+最简单的情况是通过元组的一个或多个字段上分组Tuple的数据集：
 {% highlight python %}
 reduced = data \
   .group_by(0) \
   .reduce_group(<do something>)
 {% endhighlight %}
 
-The data set is grouped on the first field of the tuples.
-The group-reduce function will thus receive groups of tuples with
-the same value in the first field.
+数据集被分组在元组的第一个字段上。
+group-reduce函数将因此接收第一个字段中具有相同值的元组的组。
 
 {% highlight python %}
 grouped = data \
@@ -380,20 +356,16 @@ grouped = data \
   .reduce(/*do something*/)
 {% endhighlight %}
 
-The data set is grouped on the composite key consisting of the first and the
-second fields, therefore the reduce function will receive groups
-with the same value for both fields.
+数据集按照由第一和第二个字段组成的组合键进行分组，因此reduce函数将接收两个字段具有相同值的组。
 
-A note on nested Tuples: If you have a DataSet with a nested tuple
-specifying `group_by(<index of tuple>)` will cause the system to use the full tuple as a key.
-
+关于嵌套元组的一个注意事项：如果你有一个带有嵌套元组的数据集，指定`group_by(<index of tuple>)`将导致系统使用完整的元组作为键。
 {% top %}
 
 
-Passing Functions to Flink
+将Functions传递给Flink
 --------------------------
 
-Certain operations require user-defined functions, whereas all of them accept lambda functions and rich functions as arguments.
+某些算子需要用户定义的函数，而所有这些算子都接受lambda函数和rich函数作为参数。
 
 {% highlight python %}
 data.filter(lambda x: x > 5)
@@ -407,21 +379,19 @@ class Filter(FilterFunction):
 data.filter(Filter())
 {% endhighlight %}
 
-Rich functions allow the use of imported functions, provide access to broadcast-variables,
-can be parameterized using __init__(), and are the go-to-option for complex functions.
-They are also the only way to define an optional `combine` function for a reduce operation.
+rich函数允许使用导入的函数，提供对广播变量的访问，可以使用 __init__()进行参数化，并且是复杂函数的前往选项。
+它们也是为reduce 算子 定义可选的“combine”功能的唯一方法。
 
-Lambda functions allow the easy insertion of one-liners. Note that a lambda function has to return
-an iterable, if the operation can return multiple values. (All functions receiving a collector argument)
+Lambda函数允许轻松插入 one-liners。请注意，如果算子可以返回多个值，则lambda函数必须返回一个迭代器。（所有接收收集器参数的函数）
 
 {% top %}
 
-Data Types
+数据类型
 ----------
 
-Flink's Python API currently only offers native support for primitive python types (int, float, bool, string) and byte arrays.
+Flink的Python API目前仅提供对原始python类型（int，float，bool，string）和字节数组的原生支持。
 
-The type support can be extended by passing a serializer, deserializer and type class to the environment.
+类型支持可以通过将序列化器，反序列化器和类型类传递给环境来扩展。
 {% highlight python %}
 class MyObj(object):
     def __init__(self, i):
@@ -442,10 +412,10 @@ class MyDeserializer(object):
 env.register_custom_type(MyObj, MySerializer(), MyDeserializer())
 {% endhighlight %}
 
-#### Tuples/Lists
+#### 元祖/列表
 
-You can use the tuples (or lists) for composite types. Python tuples are mapped to the Flink Tuple type, that contain
-a fix number of fields of various types (up to 25). Every field of a tuple can be a primitive type - including further tuples, resulting in nested tuples.
+您可以将元组（或列表）用于复合类型。Python元组映射到Flink Tuple类型，
+其中包含固定数量的各种类型的字段（最多25个）。元组的每个字段都可以是一个基本类型 - 包括嵌套元组。
 
 {% highlight python %}
 word_counts = env.from_elements(("hello", 1), ("world",2))
@@ -453,9 +423,8 @@ word_counts = env.from_elements(("hello", 1), ("world",2))
 counts = word_counts.map(lambda x: x[1])
 {% endhighlight %}
 
-When working with operators that require a Key for grouping or matching records,
-Tuples let you simply specify the positions of the fields to be used as key. You can specify more
-than one position to use composite keys (see [Section Data Transformations](#transformations)).
+在处理需要用于分组或匹配记录的键的算子时，元组让您只需指定要用作键的字段的位置。
+您可以指定多个位置来使用组合键（请参见 [数据Transformations](#transformations)）。
 
 {% highlight python %}
 wordCounts \
@@ -465,24 +434,23 @@ wordCounts \
 
 {% top %}
 
-Data Sources
+数据源
 ------------
 
-Data sources create the initial data sets, such as from files or from collections.
+数据源创建初始数据集，例如从文件或集合中创建。
 
-File-based:
+基于文件:
 
-- `read_text(path)` - Reads files line wise and returns them as Strings.
-- `read_csv(path, type)` - Parses files of comma (or another char) delimited fields.
-  Returns a DataSet of tuples. Supports the basic java types and their Value counterparts as field
-  types.
+- `read_text(path)` - 读取文件行并将其作为字符串返回
+- `read_csv(path, type)` - 解析逗号（或其他字符）分隔字段的文件。返回元组的数据集。 支持将基本的Java类型及其Value对应项作为字段类型。
 
-Collection-based:
 
-- `from_elements(*args)` - Creates a data set from a Seq. All elements
-- `generate_sequence(from, to)` - Generates the sequence of numbers in the given interval, in parallel.
+基于集合:
 
-**Examples**
+- `from_elements(*args)` - 从Seq创建数据集。所有元素
+- `generate_sequence(from, to)` -并行生成给定间隔内的数字序列。
+
+**示例**
 
 {% highlight python %}
 env  = get_environment
@@ -508,21 +476,18 @@ numbers = env.generate_sequence(1, 10000000)
 Data Sinks
 ----------
 
-Data sinks consume DataSets and are used to store or return them:
+Data sinks 消费 DataSets 并用于存储或返回它们：
 
-- `write_text()` - Writes elements line-wise as Strings. The Strings are
-  obtained by calling the *str()* method of each element.
-- `write_csv(...)` - Writes tuples as comma-separated value files. Row and field
-  delimiters are configurable. The value for each field comes from the *str()* method of the objects.
-- `output()` - Prints the *str()* value of each element on the
-  standard out.
+- `write_text()` - 将元素按行方式编写为字符串。字符串通过调用每个元素的*str()* 方法获得。
+- `write_csv(...)` -将元组写为逗号分隔的值文件。行和字段分隔符是可配置的。每个字段的值来自对象的*str()* 方法。
+- `output()` - 打印标准输出中每个元素的*str()* 值。
 
-A DataSet can be input to multiple operations. Programs can write or print a data set and at the
-same time run additional transformations on them.
 
-**Examples**
+DataSet可以输入到多个算子。程序可以编写或打印一个数据集，同时对它们进行额外的转换。
 
-Standard data sink methods:
+**示例**
+
+标准的 data sink 方法:
 
 {% highlight scala %}
  write DataSet to a file on the local file system
@@ -546,13 +511,11 @@ values.write_text("file:///path/to/the/result/file")
 Broadcast Variables
 -------------------
 
-Broadcast variables allow you to make a data set available to all parallel instances of an
-operation, in addition to the regular input of the operation. This is useful for auxiliary data
-sets, or data-dependent parameterization. The data set will then be accessible at the operator as a
-Collection.
+除了算子的常规输入，广播变量还允许您为所有算子的并行实例创建一个数据集。
+这对辅助数据集或数据相关参数化非常有用。数据集将作为集合在算子处访问。
 
-- **Broadcast**: broadcast sets are registered by name via `with_broadcast_set(DataSet, String)`
-- **Access**: accessible via `self.context.get_broadcast_variable(String)` at the target operator
+- **Broadcast**:广播集合通过`with_broadcast_set(DataSet, String)`按名称注册
+- **Access**: 在目标算子中通过`self.context.get_broadcast_variable(String)` 访问
 
 {% highlight python %}
 class MapperBcv(MapFunction):
@@ -568,36 +531,31 @@ data = env.from_elements("a", "b")
 data.map(MapperBcv()).with_broadcast_set("bcv", toBroadcast)
 {% endhighlight %}
 
-Make sure that the names (`bcv` in the previous example) match when registering and
-accessing broadcast data sets.
+在注册和访问广播数据集时，确保名称（前面例子中的'bcv'）匹配。
 
-**Note**: As the content of broadcast variables is kept in-memory on each node, it should not become
-too large. For simpler things like scalar values you can simply parameterize the rich function.
+**Note**: 由于广播变量的内容保存在每个节点的内存中，因此它不应该变得太大。
+对于简单的事情，如标量值，你可以简单地参数化rich 函数。
 
 {% top %}
 
-Parallel Execution
+并行执行
 ------------------
 
-This section describes how the parallel execution of programs can be configured in Flink. A Flink
-program consists of multiple tasks (operators, data sources, and sinks). A task is split into
-several parallel instances for execution and each parallel instance processes a subset of the task's
-input data. The number of parallel instances of a task is called its *parallelism* or *degree of
-parallelism (DOP)*.
+本节介绍如何在Flink中配置程序的并行执行。
+Flink程序由多个任务组成（算子，数据源和sink）。
+一个任务被分成几个并行实例来执行，每个并行实例处理任务输入数据的一个子集。
+一个任务的并行实例的数量被称为其*并行度*或*并行度（DOP）*。
 
-The degree of parallelism of a task can be specified in Flink on different levels.
+任务的并行度可以在Flink中不同的级别指定。
 
-### Execution Environment Level
+### 执行环境级别
 
-Flink programs are executed in the context of an [execution environment](#program-skeleton). An
-execution environment defines a default parallelism for all operators, data sources, and data sinks
-it executes. Execution environment parallelism can be overwritten by explicitly configuring the
-parallelism of an operator.
+Flink程序在[执行环境](#program-skeleton)的上下文中执行。执行环境为所有算子，数据源和sink定义了一个默认的并行度。
+通过显式配置算子的并行度，可以覆盖执行环境并行度。
 
-The default parallelism of an execution environment can be specified by calling the
-`set_parallelism()` method. To execute all operators, data sources, and data sinks of the
-[WordCount](#example-program) example program with a parallelism of `3`, set the default parallelism of the
-execution environment as follows:
+执行环境的默认并行度可以通过调用`set_parallelism()`方法来指定。
+要执行并行度为3的[WordCount](#example-program)示例程序的所有算子，数据源和数据sink，
+请按如下方式设置执行环境的默认并行度：
 
 {% highlight python %}
 env = get_environment()
@@ -611,20 +569,18 @@ text.flat_map(lambda x,c: x.lower().split()) \
 env.execute()
 {% endhighlight %}
 
-### System Level
+### 系统级别
 
-A system-wide default parallelism for all execution environments can be defined by setting the
-`parallelism.default` property in `./conf/flink-conf.yaml`. See the
-[Configuration]({{ site.baseurl }}/ops/config.html) documentation for details.
+可以通过在`./conf/flink-conf.yaml`中设置`parallelism.default` 属性来定义所有执行环境的全系统默认并行度。
+详细信息请参阅[配置]({{ site.baseurl }}/ops/config.html)文档。
 
 {% top %}
 
-Executing Plans
+执行计划
 ---------------
 
-To run the plan with Flink, go to your Flink distribution, and run the pyflink.sh script from the /bin folder.
-The script containing the plan has to be passed as the first argument, followed by a number of additional python
-packages, and finally, separated by - additional arguments that will be fed to the script.
+要使用Flink运行计划，请转至您的Flink，然后从/bin文件夹运行pyflink.sh脚本。
+包含该计划的脚本必须作为第一个参数传递，后面跟着一些附加的python包，最后将被提供给脚本的附加参数由 - 分隔开。
 
 {% highlight python %}
 ./bin/pyflink.sh <Script>[ <pathToPackage1>[ <pathToPackageX]][ - <param1>[ <paramX>]]

@@ -1,5 +1,5 @@
 ---
-title:  "Cluster Execution"
+title:  "集群执行"
 nav-parent_id: batch
 nav-pos: 12
 ---
@@ -25,27 +25,25 @@ under the License.
 * This will be replaced by the TOC
 {:toc}
 
-Flink programs can run distributed on clusters of many machines. There
-are two ways to send a program to a cluster for execution:
+Flink程序可以在许多机器的集群上分布运行。有两种方法可将程序发送到群集以供执行：
 
-## Command Line Interface
+## 命令行Interface
 
-The command line interface lets you submit packaged programs (JARs) to a cluster
-(or single machine setup).
+您可以通过命令行 interface 提交打好包的程序(JARs)到一个cluster
+(或者单机).
 
-Please refer to the [Command Line Interface]({{ site.baseurl }}/ops/cli.html) documentation for
-details.
+有关详情请参考 [Command Line Interface]({{ site.baseurl }}/ops/cli.html) 文档。
 
-## Remote Environment
+## 远程环境
 
-The remote environment lets you execute Flink Java programs on a cluster
-directly. The remote environment points to the cluster on which you want to
-execute the program.
+远程环境允许您直接在群集上执行Flink Java程序。
+远程环境指向要在其上执行程序的群集。
 
 ### Maven Dependency
 
 If you are developing your program as a Maven project, you have to add the
 `flink-clients` module using this dependency:
+如果您的程序是Maven项目，则必须添加`flink-clients`模块依赖：
 
 ~~~xml
 <dependency>
@@ -57,7 +55,7 @@ If you are developing your program as a Maven project, you have to add the
 
 ### Example
 
-The following illustrates the use of the `RemoteEnvironment`:
+以下说明使用'RemoteEnvironment'：
 
 ~~~java
 public static void main(String[] args) throws Exception {
@@ -81,5 +79,6 @@ public static void main(String[] args) throws Exception {
 Note that the program contains custom user code and hence requires a JAR file with
 the classes of the code attached. The constructor of the remote environment
 takes the path(s) to the JAR file(s).
+请注意，该程序包含自定义用户代码，因此需要代码依赖的JAR文件。远程环境的构造函数需指定JAR文件的路径。
 
 {% top %}

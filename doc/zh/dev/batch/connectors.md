@@ -25,44 +25,44 @@ under the License.
 * TOC
 {:toc}
 
-## Reading from file systems
+## 从文件系统里读取
 
-Flink has build-in support for the following file systems:
+Flink 内置支持下面的文件系统：
 
 | Filesystem                            | Scheme       | Notes  |
 | ------------------------------------- |--------------| ------ |
-| Hadoop Distributed File System (HDFS) &nbsp; | `hdfs://`    | All HDFS versions are supported |
-| Amazon S3                             | `s3://`      | Support through Hadoop file system implementation (see below) |
-| MapR file system                      | `maprfs://`  | The user has to manually place the required jar files in the `lib/` dir |
-| Alluxio                               | `alluxio://` &nbsp; | Support through Hadoop file system implementation (see below) |
+| Hadoop Distributed File System (HDFS) &nbsp; | `hdfs://`    | 只是所有HDFS版本 |
+| Amazon S3                             | `s3://`      | Support 通过 Hadoop 文件系统实现 (见下文) |
+| MapR file system                      | `maprfs://`  | 用户需要手动放置相关jar到`lib/` 目录 |
+| Alluxio                               | `alluxio://` &nbsp; | Support 通过 Hadoop 文件系统实现 (见下文) | |
 
 
 
-### Using Hadoop file system implementations
+###  使用Hadoop 文件系统实现
 
-Apache Flink allows users to use any file system implementing the `org.apache.hadoop.fs.FileSystem`
-interface. There are Hadoop `FileSystem` implementations for
+Apache Flink允许用户使用任何实现了`org.apache.hadoop.fs.FileSystem`接口的文件系统。
+实现了Hadoop `FileSystem`的有:
 
-- [S3](https://aws.amazon.com/s3/) (tested)
-- [Google Cloud Storage Connector for Hadoop](https://cloud.google.com/hadoop/google-cloud-storage-connector) (tested)
-- [Alluxio](http://alluxio.org/) (tested)
-- [XtreemFS](http://www.xtreemfs.org/) (tested)
-- FTP via [Hftp](http://hadoop.apache.org/docs/r1.2.1/hftp.html) (not tested)
-- and many more.
+- [S3](https://aws.amazon.com/s3/) (已测试)
+- [Google Cloud Storage Connector for Hadoop](https://cloud.google.com/hadoop/google-cloud-storage-connector) (已测试)
+- [Alluxio](http://alluxio.org/) (已测试)
+- [XtreemFS](http://www.xtreemfs.org/) (已测试)
+- FTP via [Hftp](http://hadoop.apache.org/docs/r1.2.1/hftp.html) (未测试)
+- 还有很多
 
-In order to use a Hadoop file system with Flink, make sure that
+为了在Flink中使用Hadoop文件系统，请确保
 
-- the `flink-conf.yaml` has set the `fs.hdfs.hadoopconf` property to the Hadoop configuration directory. For automated testing or running from an IDE the directory containing `flink-conf.yaml` can be set by defining the `FLINK_CONF_DIR` environment variable.
-- the Hadoop configuration (in that directory) has an entry for the required file system in a file `core-site.xml`. Examples for S3 and Alluxio are linked/shown below.
-- the required classes for using the file system are available in the `lib/` folder of the Flink installation (on all machines running Flink). If putting the files into the directory is not possible, Flink also respects the `HADOOP_CLASSPATH` environment variable to add Hadoop jar files to the classpath.
+- `flink-conf.yaml`已经将`fs.hdfs.hadoopconf`属性设置为Hadoop配置目录。对于自动化测试或从IDE运行，可通过定义 `fs.hdfs.hadoopconf`环境变量来设置目录。
+- Hadoop配置（在该目录中）在文件`core-site.xml`中具有所需文件系统的条目。S3和Alluxio的示例将在下面介绍。
+- 使用文件系统所需的类可在Flink安装的`lib/`文件夹中找到（在运行Flink的所有机器上）。如果不能将文件放到目录中，Flink会使用`HADOOP_CLASSPATH`环境变量将Hadoop jar文件添加到classpath路径中。
 
 #### Amazon S3
 
-See [Deployment & Operations - Deployment - AWS - S3: Simple Storage Service]({{ site.baseurl }}/ops/deployment/aws.html) for available S3 file system implementations, their configuration and required libraries.
+有关可用的S3文件系统实现，其配置和所需的库，请参阅[Deployment & Operations - Deployment - AWS - S3: Simple Storage Service]({{ site.baseurl }}/ops/deployment/aws.html) 。
 
 #### Alluxio
 
-For Alluxio support add the following entry into the `core-site.xml` file:
+对于Alluxio支持，将以下条目添加到`core-site.xml`文件中：
 
 ~~~xml
 <property>
@@ -72,22 +72,20 @@ For Alluxio support add the following entry into the `core-site.xml` file:
 ~~~
 
 
-## Connecting to other systems using Input/OutputFormat wrappers for Hadoop
+## 使用Hadoop的Input / OutputFormat包装器连接到其他系统
 
-Apache Flink allows users to access many different systems as data sources or sinks.
-The system is designed for very easy extensibility. Similar to Apache Hadoop, Flink has the concept
-of so called `InputFormat`s and `OutputFormat`s.
+Apache Flink允许用户访问许多不同的系统作为数据源或sink。
+该系统的设计非常易于扩展。与Apache Hadoop类似，Flink具有所谓的InputFormats和OutputFormats的概念。
 
-One implementation of these `InputFormat`s is the `HadoopInputFormat`. This is a wrapper that allows
-users to use all existing Hadoop input formats with Flink.
+这些InputFormats的一个实现是HadoopInputFormat。这是一个允许用户在Flink中使用所有现有Hadoop输入格式的包装器。
 
-This section shows some examples for connecting Flink to other systems.
-[Read more about Hadoop compatibility in Flink]({{ site.baseurl }}/dev/batch/hadoop_compatibility.html).
+本节介绍将Flink连接到其他系统的一些示例。
+[了解更多关于Flink Hadoop兼容性的信息]({{ site.baseurl }}/dev/batch/hadoop_compatibility.html)。
 
-## Avro support in Flink
+## Flink对Avro的支持
 
-Flink has extensive build-in support for [Apache Avro](http://avro.apache.org/). This allows to easily read from Avro files with Flink.
-Also, the serialization framework of Flink is able to handle classes generated from Avro schemas. Be sure to include the Flink Avro dependency to the pom.xml of your project.
+Flink对ApacheAvro有广泛的内置支持。这允许使用Flink轻松读取Avro文件。
+此外，Flink的序列化框架能够处理从Avro模式生成的类。确保将FlinkAvro依赖项包含到项目的pom.xml中。
 
 ~~~xml
 <dependency>
@@ -97,37 +95,37 @@ Also, the serialization framework of Flink is able to handle classes generated f
 </dependency>
 ~~~
 
-In order to read data from an Avro file, you have to specify an `AvroInputFormat`.
+为了从Avro文件读取数据，你必须指定一个`AvroInputFormat`。
 
-**Example**:
+**示例**:
 
 ~~~java
 AvroInputFormat<User> users = new AvroInputFormat<User>(in, User.class);
 DataSet<User> usersDS = env.createInput(users);
 ~~~
 
-Note that `User` is a POJO generated by Avro. Flink also allows to perform string-based key selection of these POJOs. For example:
+请注意`User`是Avro生成的POJO。Flink还允许执行这些POJO的基于字符串类型的key selection 。例如：
 
 ~~~java
 usersDS.groupBy("name")
 ~~~
 
 
-Note that using the `GenericData.Record` type is possible with Flink, but not recommended. Since the record contains the full schema, its very data intensive and thus probably slow to use.
+请注意，通过Flink可以使用`GenericData.Record`类型，但不推荐。由于该记录包含完整的模式，其数据密集型，因此使用起来可能很慢。
 
-Flink's POJO field selection also works with POJOs generated from Avro. However, the usage is only possible if the field types are written correctly to the generated class. If a field is of type `Object` you can not use the field as a join or grouping key.
-Specifying a field in Avro like this `{"name": "type_double_test", "type": "double"},` works fine, however specifying it as a UNION-type with only one field (`{"name": "type_double_test", "type": ["double"]},`) will generate a field of type `Object`. Note that specifying nullable types (`{"name": "type_double_test", "type": ["null", "double"]},`) is possible!
+Flink的POJO字段selection 也适用于Avro生成的POJO。但是，仅当字段类型正确写入生成的类时才可能使用该用法。如果某个字段的类型为“Object”，则不能将该字段用作join或grouping 键。
+在Avro中指定一个字段，就像这个`{"name": "type_double_test", "type": "double"},`是有效的，但是将它指定为只有一个字段的UNION-type（`{“name”：“ type_double_test“，”type“：[”double“]}，`）将生成一个类型为”Object“的字段。请注意，指定可以为空的类型 (`{"name": "type_double_test", "type": ["null", "double"]},`) 是可能的！
 
 
 
-### Access Microsoft Azure Table Storage
+### 访问 Microsoft Azure Table Storage
 
-_Note: This example works starting from Flink 0.6-incubating_
+_Note:这个例子从 Flink 0.6-incubating_ 开始
 
-This example is using the `HadoopInputFormat` wrapper to use an existing Hadoop input format implementation for accessing [Azure's Table Storage](https://azure.microsoft.com/en-us/documentation/articles/storage-introduction/).
+此示例使用HadoopInputFormat包装器来使用现有的Hadoop输入格式实现来访问[Azure's Table Storage](https://azure.microsoft.com/en-us/documentation/articles/storage-introduction/)。
 
-1. Download and compile the `azure-tables-hadoop` project. The input format developed by the project is not yet available in Maven Central, therefore, we have to build the project ourselves.
-Execute the following commands:
+1. 下载并编译`azure-tables-hadoop`项目。该项目开发的输入格式在Maven Central尚未提供，因此我们必须自行构建该项目。
+执行以下命令:
 
    ~~~bash
    git clone https://github.com/mooso/azure-tables-hadoop.git
@@ -135,13 +133,13 @@ Execute the following commands:
    mvn clean install
    ~~~
 
-2. Setup a new Flink project using the quickstarts:
+2. 使用quickstarts设置新的Flink项目：
 
    ~~~bash
    curl https://flink.apache.org/q/quickstart.sh | bash
    ~~~
 
-3. Add the following dependencies (in the `<dependencies>` section) to your `pom.xml` file:
+3. 将以下依赖关系（在 `<dependencies>` 部分中）添加到`pom.xml`文件中：
 
    ~~~xml
    <dependency>
@@ -156,13 +154,13 @@ Execute the following commands:
    </dependency>
    ~~~
 
-   `flink-hadoop-compatibility` is a Flink package that provides the Hadoop input format wrappers.
-   `microsoft-hadoop-azure` is adding the project we've build before to our project.
+   `flink-hadoop-compatibility`是一个提供Hadoop输入格式包装器的Flink包。
+   `microsoft-hadoop-azure`将我们之前构建的项目添加到我们的项目中。
 
-The project is now prepared for starting to code. We recommend to import the project into an IDE, such as Eclipse or IntelliJ. (Import as a Maven project!).
-Browse to the code of the `Job.java` file. Its an empty skeleton for a Flink job.
+该项目现在准备开始编码。我们建议将该项目导入IDE，例如Eclipse或IntelliJ。（作为Maven项目导入！）。
+浏览到`Job.java`文件的代码。它是一个Flink作业的空框架。
 
-Paste the following code into it:
+将以下代码粘贴到它中：:
 
 ~~~java
 import java.util.Map;
@@ -219,9 +217,9 @@ public class AzureTableExample {
 }
 ~~~
 
-The example shows how to access an Azure table and turn data into Flink's `DataSet` (more specifically, the type of the set is `DataSet<Tuple2<Text, WritableEntity>>`). With the `DataSet`, you can apply all known transformations to the DataSet.
+该示例显示了如何访问Azure表并将数据转换为Flink的`DataSet`（更具体地说，该集的类型是`DataSet<Tuple2<Text, WritableEntity>>`）。使用`DataSet`，您可以将所有已知的转换应用于DataSet。
 
-## Access MongoDB
+## 访问 MongoDB
 
 This [GitHub repository documents how to use MongoDB with Apache Flink (starting from 0.7-incubating)](https://github.com/okkam-it/flink-mongodb-test).
 
