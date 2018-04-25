@@ -120,36 +120,39 @@ val result: DataStream[Alert] = patternStream.select(createAlert(_))
 </div>
 </div>
 
-## The Pattern API
+## Pattern API
 
-The pattern API allows you to define complex pattern sequences that you want to extract from your input stream.
+该 pattern API 允许您定义要从 input stream（输入流）中提取的复杂模式序列。
 
-Each complex pattern sequence consists of multiple simple patterns, i.e. patterns looking for individual events with the same properties. From now on, we will call these simple patterns **patterns**, and the final complex pattern sequence we are searching for in the stream, the **pattern sequence**. You can see a pattern sequence as a graph of such patterns, where transitions from one pattern to the next occur based on user-specified
-*conditions*, e.g. `event.getName().equals("start")`. A **match** is a sequence of input events which visits all
-patterns of the complex pattern graph, through a sequence of valid pattern transitions.
+每一个复杂模式序列由多个简单的模式组成，例如. 模式寻找具有相同属性的个别事件.
+从现在开始，我们将称这些简单的模式为 **patterns**，以及我们在流中搜索的最终复杂模式序列为 **pattern sequence**。
+您可以将 pattern sequence（模式序列）看作是这些模式的 graphx（图），它们从用户指定的 *conditions* 从一个模式转换到下一个模式，例如. `event.getName().equals("start")`.
+一个 **match** 是一系列的输入事件，它通过一系列有效的模式转换来访问了复杂模式图的所有模式。
 
-{% warn Attention %} Each pattern must have a unique name, which you use later to identify the matched events.
+{% warn Attention %} 每个模式必须有一个唯一的名字，后面你会使用它来识别所匹配的事件。
 
-{% warn Attention %} Pattern names **CANNOT** contain the character `":"`.
+{% warn Attention %} 模式名 **CANNOT** 包含字符 `":"` 。
 
-In the rest of this section we will first describe how to define [Individual Patterns](#individual-patterns), and then how you can combine individual patterns into [Complex Patterns](#combining-patterns).
+在本章的其余部分中，我们首先来介绍如何定义 [单独模式](#individual-patterns)，然后就可以将这些单独的模式联合起来作为 [复杂模式](#combining-patterns) 。
 
-### Individual Patterns
+### Individual Patterns（单个模式）
 
-A **Pattern** can be either a *singleton* or a *looping* pattern. Singleton patterns accept a single
-event, while looping patterns can accept more than one. In pattern matching symbols, the pattern `"a b+ c? d"` (or `"a"`, followed by *one or more* `"b"`'s, optionally followed by a `"c"`, followed by a `"d"`), `a`, `c?`, and `d` are
-singleton patterns, while `b+` is a looping one. By default, a pattern is a singleton pattern and you can transform
-it to a looping one by using [Quantifiers](#quantifiers). Each pattern can have one or more
-[Conditions](#conditions) based on which it accepts events.
+一个 **Pattern** 可以是一个 *singleton* 或一个 *looping* 模式。
+Singleton patterns 接收一个单独的事件，然而 looping patterns 可以接收更多的事件。
+在模式匹配的符号中，模式 `"a b+ c? d"` (或 `"a"`, 随后是 *一个或更多的* `"b"`'s, 后面跟一个可选的 `"c"`, 随后再是 `"d"`), `a`, `c?`, 和 `d` 是 singleton patterns，然而 `b+` 是一个 looping one。
+默认情况下，一个模式是一个 singleton pattern，并且可以使用 [Quantifiers](#quantifiers) 将它转换成为一个 looping one。
+每个模式都有一个或多个基于它事件上的 [Conditions](#conditions)。
 
-#### Quantifiers
+#### Quantifiers（数量）
 
-In FlinkCEP, you can specify looping patterns using these methods: `pattern.oneOrMore()`, for patterns that expect one or more occurrences of a given event (e.g. the `b+` mentioned before); and `pattern.times(#ofTimes)`, for patterns that
-expect a specific number of occurrences of a given type of event, e.g. 4 `a`'s; and `pattern.times(#fromTimes, #toTimes)`, for patterns that expect a specific minimum number of occurrences and a maximum number of occurrences of a given type of event, e.g. 2-4 `a`s.
+在 FlinkCEP 中，您可以使用方法: `pattern.oneOrMore()` 来指定 looping patterns，对于那些期望一个或多个事件发生的模式（例如，前面提及的 `b+`）;
+以及 `pattern.times(#ofTimes)`，该模式期望一个指定事件类型发生的次数，例如. 4 `a`'s;
+以及 `pattern.times(#fromTimes, #toTimes)`，该模式期待一个指定事件类型中的最小数量发生和最大数量发生的次数，例如. 2-4 `a`s.
 
-You can make looping patterns greedy using the `pattern.greedy()` method, but you cannot yet make group patterns greedy. You can make all patterns, looping or not, optional using the `pattern.optional()` method.
+您可以使用 `pattern.greedy()` 方法来让 looping pattern 变得 greedy（贪婪），但是您不能使得 group patterns 变得贪婪。
+您可以让所有的 patterns，looping or not，可选的使用 `pattern.optional()` 方法。
 
-For a pattern named `start`, the following are valid quantifiers:
+对于一个名为 `start` 的模式，下面是有效的 quantifiers（数量）:
 
  <div class="codetabs" markdown="1">
  <div data-lang="java" markdown="1">
@@ -242,29 +245,25 @@ For a pattern named `start`, the following are valid quantifiers:
  </div>
  </div>
 
-#### Conditions
+#### Conditions（条件）
 
-At every pattern, and to go from one pattern to the next, you can specify additional **conditions**.
-You can relate these conditions to:
+在每一个模式中，从一个模式到达下一个模式，您可以指定一个额外的 **conditions（条件）**.
 
- 1. A [property of the incoming event](#conditions-on-properties), e.g. its value should be larger than 5,
- or larger than the average value of the previously accepted events.
+ 1. [传入事件的属性](#conditions-on-properties)。例如，它的值应该大于 5，或者比以前所接收时间的平均值要大。
 
- 2. The [contiguity of the matching events](#conditions-on-contiguity), e.g. detect pattern `a,b,c` without
- non-matching events between any matching ones.
+ 2. [匹配时间的连续性](#conditions-on-contiguity)。例如，检测模式 `a,b,c` 在任何匹配的事件之间没有不匹配的事件。
 
-The latter refers to "looping" patterns, *i.e.* patterns that can accept more than one event, e.g. the `b+` in `a b+ c`,
-which searches for one or more `b`'s.
+后面一种方式涉及了 "looping" patterns（循环模式），也就是说，模式可以接收更多的事件。例如，`a b+ c` 中的 `b+`，它搜索一个或多个 `b`。
 
-##### Conditions on Properties
+##### Conditions on Properties（属性上的条件）
 
-You can specify conditions on the event properties via the `pattern.where()`, `pattern.or()` or the `pattern.until()` method. These can be either `IterativeCondition`s or `SimpleCondition`s.
+您可以通过 `pattern.where()`, `pattern.or()` 或 `pattern.until()` 方法在事件属性上指定条件。
+它们可以是 `IterativeCondition` 或 `SimpleCondition`。
 
-**Iterative Conditions:** This is the most general type of condition. This is how you can specify a condition that
-accepts subsequent events based on properties of the previously accepted events or a statistic over a subset of them.
+**Iterative Conditions（迭代条件）:** 这是最常见是一种条件。这就是您可以如何指定接收后续事件的条件，该条件基于先前接收的事件的属性或其子集上的统计量。
 
-Below is the code for an iterative condition that accepts the next event for a pattern named "middle" if its name starts
-with "foo", and if the sum of the prices of the previously accepted events for that pattern plus the price of the current event do not exceed the value of 5.0. Iterative conditions can be powerful, especially in combination with looping patterns, e.g. `oneOrMore()`.
+下面是一个迭代条件的代码，如果 name 以 "foo" 开头，则接收名为 "middle" 模式的下一个事件，并且如果此模式的先前接收事件的价格总和加上当前价格的事件不会超出 5.0.
+迭代条件是非常强大的，特别是与循环模式联合起来的时候。例如，`oneOrMore()` 。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -298,12 +297,10 @@ middle.oneOrMore().where(
 </div>
 </div>
 
-{% warn Attention %} The call to `context.getEventsForPattern(...)` finds all the
-previously accepted events for a given potential match. The cost of this operation can vary, so when implementing
-your condition, try to minimize its use.
+{% warn Attention %} 调用 `context.getEventsForPattern(...)` 为一个给定的潜在匹配来查找所有先前接收的事件。
+此操作的成本可能会有所不同，所以在实现您的自定义条件时，该尽量减少其使用。
 
-**Simple Conditions:** This type of condition extends the aforementioned `IterativeCondition` class and decides
-whether to accept an event or not, based *only* on properties of the event itself.
+**Simple Conditions（简单条件）:** 这种类型的条件扩展了上述提及的 `IterativeCondition` 类，并且会根据事件本身的属性上的 *only* 来决定是否接收事件。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -324,8 +321,7 @@ start.where(event => event.getName.startsWith("foo"))
 </div>
 </div>
 
-Finally, you can also restrict the type of the accepted event to a subtype of the initial event type (here `Event`)
-via the `pattern.subtype(subClass)` method.
+最后，您还可以通过 `pattern.subtype(subClass)` 方法将接收事件的类型限制为初始事件类型（这里是 `Event`）的子类型。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -346,7 +342,11 @@ start.subtype(classOf[SubEvent]).where(subEvent => ... /* some condition */)
 </div>
 </div>
 
-**Combining Conditions:** As shown above, you can combine the `subtype` condition with additional conditions. This holds for every condition. You can arbitrarily combine conditions by sequentially calling `where()`. The final result will be the logical **AND** of the results of the individual conditions. To combine conditions using **OR**, you can use the `or()` method, as shown below.
+**Combining Conditions（联合条件）:** 如上所述，您可以联合 `subtype` 条件和其它的条件。
+这适用于每种情况。
+您可以通过顺序调用 `where()` 方法来任意组合条件。
+最终结果将是个别条件结果的逻辑 **AND**。
+要使用 **OR** 来联合条件，您可以使用 `or()` 方法，如下所述。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -373,48 +373,43 @@ pattern.where(event => ... /* some condition */).or(event => ... /* or condition
 </div>
 
 
-**Stop condition:** In case of looping patterns (`oneOrMore()` and `oneOrMore().optional()`) you can
-also specify a stop condition, e.g. accept events with value larger than 5 until the sum of values is smaller than 50.
+**Stop condition（停止条件）:** 在循环模式（`oneOrMore()` 和 `oneOrMore().optional()`）的场景中，您也可以指定一个停止条件。
+例如，接受值大于 5 的事件，直到它们的合小雨 50。
 
-To better understand it, have a look at the following example. Given
+为了更好的理解它，让我们来看看下面的示例。
 
-* pattern like `"(a+ until b)"` (one or more `"a"` until `"b"`)
+* 像 `"(a+ until b)"` 这样的模式 (一个或多个 `"a"` 直到 `"b"`)
 
-* a sequence of incoming events `"a1" "c" "a2" "b" "a3"`
+* 传入事件的序列 `"a1" "c" "a2" "b" "a3"`
 
-* the library will output results: `{a1 a2} {a1} {a2} {a3}`.
+* 操作的输出结果: `{a1 a2} {a1} {a2} {a3}`.
 
-As you can see `{a1 a2 a3}` or `{a2 a3}` are not returned due to the stop condition.
+正如您所见，由于停止条件，`{a1 a2 a3}` 或 `{a2 a3}` 不会被返回。
 
-##### Conditions on Contiguity
+##### Conditions on Contiguity（邻近条件）
 
-FlinkCEP supports the following forms of contiguity between events:
+FlinkCEP 支持以下事件之间的连续形式 : 
 
- 1. **Strict Contiguity**: Expects all matching events to appear strictly one after the other, without any non-matching events in-between.
+ 1. **Strict Contiguity（严格连续性）**: 期望所有匹配的事件都严格依次出现，而不存在任何不匹配的事件。
 
- 2. **Relaxed Contiguity**: Ignores non-matching events appearing in-between the matching ones.
+ 2. **Relaxed Contiguity（宽松连续性）**: 忽略出现在匹配项之间的不匹配事件。
 
- 3. **Non-Deterministic Relaxed Contiguity**: Further relaxes contiguity, allowing additional matches
- that ignore some matching events.
+ 3. **Non-Deterministic Relaxed Contiguity（非确定性的宽松连续性）**: 进一步放宽连续性，允许忽略一些匹配事件的其他匹配。
 
-To illustrate the above with an example, a pattern sequence `"a+ b"` (one or more `"a"`'s followed by a `"b"`) with
-input `"a1", "c", "a2", "b"` will have the following results:
+用一个例子来说明上面的套路，假设一个模式序列是 `"a+ b"`（一个或多个 `"a"` 后面紧跟着 `"b"`），输入是 `"a1", "c", "a2", "b"` ，那么将会出现下面的结果 : 
 
- 1. **Strict Contiguity**: `{a2 b}` -- the `"c"` after `"a1"` causes `"a1"` to be discarded.
+ 1. **Strict Contiguity（严格连续性）**: `{a2 b}` -- 由于 `"c"` 在 `"a1"` 后面，所以造成了 `"a1"` 被丢弃。
 
- 2. **Relaxed Contiguity**: `{a1 b}` and `{a1 a2 b}` -- `c` is ignored.
+ 2. **Relaxed Contiguity（宽松连续性）**: `{a1 b}` 和 `{a1 a2 b}` -- `c` 被忽略。
 
- 3. **Non-Deterministic Relaxed Contiguity**: `{a1 b}`, `{a2 b}`, and `{a1 a2 b}`.
+ 3. **Non-Deterministic Relaxed Contiguity（非确定性的宽松连续性）**: `{a1 b}`, `{a2 b}` 和 `{a1 a2 b}`.
 
-For looping patterns (e.g. `oneOrMore()` and `times()`) the default is *relaxed contiguity*. If you want
-strict contiguity, you have to explicitly specify it by using the `consecutive()` call, and if you want
-*non-deterministic relaxed contiguity* you can use the `allowCombinations()` call.
+对于循环模式（例如，`oneOrMore()` and `times()`）默认是 **Relaxed Contiguity（宽松连续性）** 。
+如果您想要 **Strict Contiguity（严格连续性）** ，您必须通过调用 `consecutive()` 方法来明确的指定，并且如果您想要 **Non-Deterministic Relaxed Contiguity（非确定性的宽松连续性）** ，则可以调用 `allowCombinations()` 方法。
 
 {% warn Attention %}
-In this section we are talking about contiguity *within* a single looping pattern, and the
-`consecutive()` and `allowCombinations()` calls need to be understood in that context. Later when looking at
-[Combining Patterns](#combining-patterns) we'll discuss other calls, such as `next()` and `followedBy()`,
-that are used to specify contiguity conditions *between* patterns.
+在本节中，我们正在讨论 *单个循环模式中的连续性* ，并且需要在该上下文中理解 `consecutive()` 和 `allowCombinations()` 方法的调用。
+稍候，我们将学习 [Combining Patterns](#combining-patterns) 时再来讨论其它的调用。例如，`next()` 和 `followedBy()` ，这些调用用于指定在两个模式之间的邻近条件。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -795,12 +790,11 @@ Pattern.begin("start").where(_.getName().equals("c"))
 
 </div>
 
-### Combining Patterns
+### Combining Patterns（联合模式）
 
-Now that you've seen what an individual pattern can look like, it is time to see how to combine them
-into a full pattern sequence.
+现在您已经学习了单个模式的套路，是时候来看看如何将它们联合在一起组成完整的模式序列了。
 
-A pattern sequence has to start with an initial pattern, as shown below:
+模式序列必须以 initial pattern（初始模式）来开始，如下所示 : 
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -816,23 +810,22 @@ val start : Pattern[Event, _] = Pattern.begin("start")
 </div>
 </div>
 
-Next, you can append more patterns to your pattern sequence by specifying the desired *contiguity conditions* between
-them. In the [previous section](#conditions-on-contiguity) we described the different contiguity modes supported by
-Flink, namely *strict*, *relaxed*, and *non-deterministic relaxed*, and how to apply them in looping patterns. To apply
-them between consecutive patterns, you can use:
+现在，您可以通过在它们之间指定所描述的 *contiguity conditions（邻近条件）* 来添加更多的模式到你的模式序列。
+在 [邻近条件](#conditions-on-contiguity) 中我们描述了 Flink 所支持的不同的邻近模式，它们分别为 *strict*, *relaxed* 和 *non-deterministic relaxed*，并且还介绍了如何将它们应用到循环模式中去。
+要中 consecutive patterns（连续模式）中应用它们, 则可以使用 : 
 
-1. `next()`, for *strict*,
-2. `followedBy()`, for *relaxed*, and
-3. `followedByAny()`, for *non-deterministic relaxed* contiguity.
+1. `next()`, 针对 *strict*,
+2. `followedBy()`, 针对 *relaxed*, 以及
+3. `followedByAny()`, 针对 *non-deterministic relaxed* 邻近模式.
 
-or
+或
 
-1. `notNext()`, if you do not want an event type to directly follow another
-2. `notFollowedBy()`, if you do not want an event type to be anywhere between two other event types
+1. `notNext()`, 如果你不想让一个事件类型直接跟随另一个
+2. `notFollowedBy()`, 如果你不希望事件类型在两个其它事件类型之间的任何地方
 
-{% warn Attention %} A pattern sequence cannot end in `notFollowedBy()`.
+{% warn Attention %} 模式序列不能以 `notFollowedBy()` 方法来结束。
 
-{% warn Attention %} A `NOT` pattern cannot be preceded by an optional one.
+{% warn Attention %} 一个 `NOT` 模式不能够在前面加一个可选的模式。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
