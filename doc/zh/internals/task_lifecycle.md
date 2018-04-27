@@ -1,6 +1,6 @@
 ---
-title:  "Task Lifecycle"
-nav-title: Task Lifecycle
+title:  "Task 生命周期"
+nav-title: Task 生命周期
 nav-parent_id: internals
 nav-pos: 5
 ---
@@ -23,24 +23,16 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-A task in Flink is the basic unit of execution. It is the place where each parallel instance of an operator is executed
-As an example, an operator with a parallelism of *5* will have each of its instances executed by a separate task. 
+Task是Flink基本的执行单元。Task是operator并行任务中执行的地方。举个例子，一个operator的并行度设置为5，它的每个实例都会被一个单独的task实例来执行。 
 
-The `StreamTask` is the base for all different task sub-types in Flink's streaming engine. This document goes through 
-the different phases in the lifecycle of the `StreamTask` and describes the main methods representing each of these 
-phases.
+`StreamTask`是flink 流计算引擎中所有不同task的基类。这个文档描述了`StreamTask`不同的生命周期，生命周期中不同阶段的方法。
 
-* This will be replaced by the TOC
 {:toc}
 
-## Operator Lifecycle in a nutshell
 
-Because the task is the entity that executes a parallel instance of an operator, its lifecycle is tightly integrated 
-with that of an operator. So, we will briefly mention the basic methods representing the lifecycle of an operator before 
-diving into those of the `StreamTask` itself. The list is presented below in the order that each of the methods is called. 
-Given that an operator can have a user-defined function (*UDF*), below each of the operator methods we also present 
-(indented) the methods in the lifecycle of the UDF that it calls. These methods are available if your operator extends 
-the `AbstractUdfStreamOperator`, which is the basic class for all operators that execute UDFs.
+## Operator 生命周期概括
+
+因为task是operator实例并行执行的实体，它的生命周期与它对应的operator的生命周期紧密相关。所以，在深入了解`StreamTask`之前，先简要描述一下operator的生命周期。这个列表按照每个方法的调用顺序列出了所有的方法。给定一个operator可以有一个用户定义的函数(*UDF*)。在每个operator方法下，我们列出了这些方法调用UDF的生命周期。如果你的operator继承了`AbstractUdfStreamOperator`，那这些方法就会生效，`AbstractUdfStreamOperator`是所有执行udfs的operator的基类。
 
         // initialization phase
         OPERATOR::setup
@@ -62,50 +54,28 @@ the `AbstractUdfStreamOperator`, which is the basic class for all operators that
             UDF::close
         OPERATOR::dispose
     
-In a nutshell, the `setup()` is called to initialize some operator-specific machinery, such as its `RuntimeContext` and 
-its metric collection data-structures. After this, the `initializeState()` gives an operator its initial state, and the 
- `open()` method executes any operator-specific initialization, such as opening the user-defined function in the case of 
-the `AbstractUdfStreamOperator`. 
+简而言之，调用`setup()`方法是为了做一些operator的初始化，比如`RuntimeContext`和metric收集的数据结构。在这之后，方法`initializeState()`给出了一个operator的状态初始化，然后`open()`方法执行所有operator的初始化，比如开启`AbstractUdfStreamOperator`的udf。
 
-<span class="label label-danger">Attention</span> The `initializeState()` contains both the logic for initializing the 
-state of the operator during its initial execution (*e.g.* register any keyed state), and also the logic to retrieve its
-state from a checkpoint after a failure. More about this on the rest of this page.
+<span class="label label-danger">注意</span> 方法`initializeState()` 包含了状态初始化时候的逻辑（比如注册keyed state），也包含了在故障后从checkpoint中恢复的逻辑。本文中关于这部分有后面更详细的解释。
 
-Now that everything is set, the operator is ready to process incoming data. Incoming elements can be one of the following: 
-input elements, watermark, and checkpoint barriers. Each one of them has a special element for handling it. Elements are 
-processed by the `processElement()` method, watermarks by the `processWatermark()`, and checkpoint barriers trigger a 
-checkpoint which invokes (asynchronously) the `snapshotState()` method, which we describe below. For each incoming element,
-depending on its type one of the aforementioned methods is called. Note that the `processElement()` is also the place 
-where the UDF's logic is invoked, *e.g.* the `map()` method of your `MapFunction`.
 
-Finally, in the case of a normal, fault-free termination of the operator (*e.g.* if the stream is finite and its end is 
-reached), the `close()` method is called to perform any final bookkeeping action required by the operator's logic (*e.g.* 
-close any connections or I/O streams opened during the operator's execution), and the `dispose()` is called after that 
-to free any resources held by the operator (*e.g.* native memory held by the operator's data). 
+现在万事具备，operator已经准备好了处理输入的数据。输入的数据可以是如下这些东西:input elements（具体的输入啥数据）, watermark(处理乱序的水位线), 和 checkpoint barriers(用于生成ha的checkpoint)。Elements会被`processElement()`方法处理，watermarks是`processWatermark()`,checkpoint barriers 跟踪一个检查点的 invokes (asynchronously) 异步调用`snapshotState()` 方法，我们会在后面描述。对于每个输入的element，根据它的类型来决定上述的哪个方法被调用。注意,`processElement()`也是UDF逻辑被调用的地方， *举例* `MapFunction`中的 `map()`方法。
 
-In the case of a termination due to a failure or due to manual cancellation, the execution jumps directly to the `dispose()` 
-and skips any intermediate phases between the phase the operator was in when the failure happened and the `dispose()`.
+最后，在正常的情况下，operator的无故障中断（*举例* 如果一个流计算是有限的，当它到达了它的终点的时候),`close()`方法被调用执行，最后会关闭operator逻辑上需要关闭的动作（*举例* 关闭掉opertaor 执行期间所有的连接或输入输出流）,`dispose()`方法是在operator释放了占用的资源后调用的(*举例* operator数据占用掉的本机内存)。
 
-**Checkpoints:** The `snapshotState()` method of the operator is called asynchronously to the rest of the methods described 
-above whenever a checkpoint barrier is received. Checkpoints are performed during the processing phase, *i.e.* after the 
-operator is opened and before it is closed. The responsibility of this method is to store the current state of the operator 
-to the specified [state backend]({{ site.baseurl }}/ops/state/state_backends.html) from where it will be retrieved when 
-the job resumes execution after a failure. Below we include a brief description of Flink's checkpointing mechanism, 
-and for a more detailed discussion on the principles around checkpointing in Flink please read the corresponding documentation: 
-[Data Streaming Fault Tolerance]({{ site.baseurl }}/internals/stream_checkpointing.html).
+由于故障或者人工取消中断的情况下,执行会直接跳转到`dispose()`,故障发生时候operator所处的阶段到`dispose()`之间的所有阶段都会被跳过。
 
-## Task Lifecycle
+**Checkpoints:** 当operator接受到checkpoint barrier的时候,operator 的`snapshotState()` 方法会被异步调用。Checkpoints在程序处理阶段执行，也就是在open之后，close之前。这个方法的责任是存储operator的状态，以达到当作业出现故障后重启，知道从哪里开始恢复[state backend]({{ site.baseurl }}/ops/state/state_backends.html)。以下给出Flink checkpoint机制的简单介绍，关于checkpoint更详细的机制介绍，请阅读相关文档:[Data Streaming Fault Tolerance]({{ site.baseurl }}/internals/stream_checkpointing.html)。
 
-Following that brief introduction on the operator's main phases, this section describes in more detail how a task calls 
-the respective methods during its execution on a cluster. The sequence of the phases described here is mainly included 
-in the `invoke()` method of the `StreamTask` class. The remainder of this document is split into two subsections, one 
-describing the phases during a regular, fault-free execution of a task (see [Normal Execution](#normal-execution)), and 
-(a shorter) one describing the different sequence followed in case the task is cancelled (see [Interrupted Execution](#interrupted-execution)), 
-either manually, or due some other reason, *e.g.* an exception thrown during execution.
+## Task 生命周期
+
+上章是operator主要阶段的简介，这章更详细的描述集群上一个task执行期间是如何调用对应的方法的。各阶段的方法顺序描述主要包含在`StreamTask`的`invoke()`方法中。本文剩下的章节中包括两部分，一部分描述阶段的正常情况，一部分是task的无故障执行 (查看 [正常执行](#normal-execution)),另一部分描述task被取消的情况下遵循的不同过程(查看 [中断执行](#interrupted-execution)), 取消可以是人工取消或者其他原因，*举例* 执行期间有异常抛出.
 
 ### Normal Execution
 
-The steps a task goes through when executed until completion without being interrupted are illustrated below:
+### 正常执行
+
+task正常执行完成没有被中断的情况下包含如下步骤:
 
 	    TASK::setInitialState
 	    TASK::invoke
@@ -120,75 +90,34 @@ The steps a task goes through when executed until completion without being inter
     	    task-specific-cleanup
     	    common-cleanup
 
-As shown above, after recovering the task configuration and initializing some important runtime parameters, the very 
-first step for the task is to retrieve its initial, task-wide state. This is done in the `setInitialState()`, and it is 
-particularly important in two cases:
+如上所示，在任务恢复配置和初始化一些重要参数后，第一步就是恢复任务的初始化，任务范围状态。该步骤在`setInitialState()`中完成，这在下面两种情况下尤其重要:
 
-1. when the task is recovering from a failure and restarts from the last successful checkpoint
-2. when resuming from a [savepoint]({{ site.baseurl }}/ops/state/savepoints.html). 
+1. 当task出现故障后，从最后一个成功的检查点恢复并重启
+2. 当从一个[savepoint]({{ site.baseurl }}/ops/state/savepoints.html)恢复。
 
-If it is the first time the task is executed, the initial task state is empty. 
+如果task是第一次执行，那么task的初始化状态是空的。
 
-After recovering any initial state, the task goes into its `invoke()` method. There, it first initializes the operators 
-involved in the local computation by calling the `setup()` method of each one of them and then performs its task-specific 
-initialization by calling the local `init()` method. By task-specific, we mean that depending on the type of the task 
-(`SourceTask`, `OneInputStreamTask` or `TwoInputStreamTask`, etc), this step may differ, but in any case, here is where 
-the necessary task-wide resources are acquired. As an example, the `OneInputStreamTask`, which represents a task that 
-expects to have a single input stream, initializes the connection(s) to the location(s) of the different partitions of 
-the input stream that are relevant to the local task.
+在所有的状态初始化恢复后，task进入`invoke()`方法。然后,它首先通过调用Operators的`setup()`方法来调用每一个本地的`init()`方法来完成初始化task的初始化。task初始化的详细内容,依赖于task的类型(`SourceTask`,`OneInputStreamTask` 或者`TwoInputStreamTask`等),这个步骤可能是不同的，但不管在什么情况下，这里都是获得必要的任务范围资源的地方。举个例子，`OneInputStreamTask`表示一个需要单独输入流的task，初始化将连接本地任务关联输入流不同分区的位置。
 
-Having acquired the necessary resources, it is time for the different operators and user-defined functions to acquire 
-their individual state from the task-wide state retrieved above. This is done in the `initializeState()` method, which 
-calls the `initializeState()` of each individual operator. This method should be overridden by every stateful operator 
-and should contain the state initialization logic, both for the first time a job is executed, and also for the case when 
-the task recovers from a failure or when using a savepoint.
 
-Now that all operators in the task have been initialized, the `open()` method of each individual operator is called by 
-the `openAllOperators()` method of the `StreamTask`. This method performs all the operational initialization, 
-such as registering any retrieved timers with the timer service. A single task may be executing multiple operators with one 
-consuming the output of its predecessor. In this case, the `open()` method is called from the last operator, *i.e.* the 
-one whose output is also the output of the task itself, to the first. This is done so that when the first operator starts 
-processing the task's input, all downstream operators are ready to receive its output.
+获得必要的资源后，就到了operator和udf从task-wide状态中获取他们各自的状态的时候。这在`initializeState()` 方法中完成,该方法会调用每个operator自己的`initializeState()` 方法.这个方法会被各个状态下的operator重载并包含状态的伙计初始化，不管是job第一次执行还是task从故障中通过检查点恢复都是这样。
 
-<span class="label label-danger">Attention</span> Consecutive operators in a task are opened from the last to the first.
+现在task中所有的Operators都完成了初始化,`StreamTask`的`openAllOperators()`方法调用所有operator各自的`open()`方法。这个方法执行了所有的操作初始化，比如向定时服务器注册恢复的定时服务。一个单独的任务可能被多个operators执行，其中一个Operator消耗它前驱的输出。在这种情况下,`open()`方法由最后一个operator调用,*即* 这个operator的输出就是该task的输出。这么做使得当第一个Operator处理task的输入时候，所有的下游operator就开始准备接受它的输出。
 
-Now the task can resume execution and operators can start processing fresh input data. This is the place where the 
-task-specific `run()`  method is called. This method will run until either there is no more input data (finite stream), 
-or the task is cancelled (manually or not). Here is where the operator specific `processElement()` and `processWatermark()` 
-methods are called.
+<span class="label label-danger">注意</span> task中连续的opertaor被打开的顺序是从最后一个到第一个。
 
-In the case of running till completion, *i.e.* there is no more input data to process, after exiting from the `run()` 
-method, the task enters its shutdown process. Initially, the timer service stops registering any new timers (*e.g.* from 
-fired timers that are being executed), clears all not-yet-started timers, and awaits the completion of currently 
-executing timers. Then the `closeAllOperators()` tries to gracefully close the operators involved in the computation by 
-calling the `close()` method of each operator. Then, any buffered output data is flushed so that they can be processed 
-by the downstream tasks, and finally the task tries to clear all the resources held by the operators by calling the 
-`dispose()` method of each one. When opening the different operators, we mentioned that the order is from the 
-last to the first. Closing happens in the opposite manner, from first to last.
+现在task可以重新(从故障中恢复)开始执行，operators可以处理新的输入数据。这时候task的`run()`方法被调用。这个方法会一直运行直到没有输入数据（有限的输入流）或者task被取消(手动取消或者非手动取消)。这个方法也是opeartor的 `processElement()` 和 `processWatermark()` 被调用的地方。
 
-<span class="label label-danger">Attention</span> Consecutive operators in a task are closed from the first to the last.
+在运行完成的情况下,*即* 没有输入数据需要处理，在`run()`方法退出之后，这个任务进入关闭阶段。首先，定时服务停止新的定时器注册(*举例* 取消掉已经完成的定时器),清楚掉所有还未启动的定时器，等待当前正在执行的定时器完成。然后`closeAllOperators()`方法会尝试通过调用每个operator各自的`close()`方法来优雅的关闭operators。然后，所有的输出缓存数据被flushed，使这些数据可以被下游task处理，最后task尝试释放掉自己占用的资源，通过调用占用资源的operator各自的`dispose()`方法来释放。我们提到过，当打开operator的时候，顺序是最后一个operator到第一个。而关闭operator动作相反，是从第一个到最后一个。
 
-Finally, when all operators have been closed and all their resources freed, the task shuts down its timer service, 
-performs its task-specific cleanup, *e.g.* cleans all its internal buffers, and then performs its generic task clean up 
-which consists of closing all its output channels and cleaning any output buffers.
+<span class="label label-danger">注意</span> 关闭task中operator的顺序是从最后一个关到第一个。
 
-**Checkpoints:** Previously we saw that during `initializeState()`, and in case of recovering from a failure, the task 
-and all its operators and functions retrieve the state that was persisted to stable storage during the last successful 
-checkpoint before the failure. Checkpoints in Flink are performed periodically based on a user-specified interval, and 
-are performed by a different thread than that of the main task thread. That's why they are not included in the main 
-phases of the task lifecycle. In a nutshell, special elements called `CheckpointBarriers` are injected periodically by 
-the source tasks of a job in the stream of input data, and travel with the actual data from source to sink. A source 
-task injects these barriers after it is in running mode, and assuming that the `CheckpointCoordinator` is also running. 
-Whenever a task receives such a barrier, it schedules a task to be performed by the checkpoint thread, which calls the 
-`snapshotState()` of the operators in the task. Input data can still be received by the task while the checkpoint is 
-being performed, but the data is buffered and only processed and emitted downstream after the checkpoint is successfully 
-completed.
+最后，当所有的operator被关闭并且它们的资源被释放，task关闭它的定时器服务，执行它自己的清理任务,*举例* 清楚所有的内部缓存，然后执行task的通用任务清理，其中包含了关闭输出流管道和清楚输出缓存等。
 
-### Interrupted Execution
 
-In the previous sections we described the lifecycle of a task that runs till completion. In case the task is cancelled 
-at any point, then the normal execution is interrupted and the only operations performed from that point on are the timer 
-service shutdown, the task-specific cleanup, the disposal of the operators, and the general task cleanup, as described 
-above.
+**Checkpoints:** 前面我们说在执行`initializeState()`的时候,当从故障中恢复的情况，task和它所有的Operator和functions会恢复状态，从故障出现前最后一个被持久化存储起来的成功的checkpoint中恢复。在flink中Checkpoints被用户配置好后周期化的执行,这是在与主线程不同的线程中完成的。这就是为何checkpoints不在task生命周期的主要阶段中。简而言之,`CheckpointBarriers`这个特殊元素是在job的数据源task中，获取输入数据的时候被注入进去的，然后跟着实际的数据从source一直流传到sink中。source task在运行模式下注入这些barrier，并假定`CheckpointCoordinator`也在运行。不管何时一个task接受到一个barrier，它都会调度一个checkpoint线程去执行任务,这会调用task的operator的`snapshotState()`方法。当checkpoint被调用的时候，任务依然可以接收输入数据，但是这些数据被缓存起来，只有到checkpoint成功完成后数据才会被发送给下游并被处理。
+
+### 异常中断
+在前面的部分我们叙述了task从运行到结束的生命周期。有一种情况是task在任意一个点被取消，然后正常执行会被中断，以下操作会被执行:定时器服务关闭，task清理，operator资源回收，正常的任务清理，这些过程在上面都有描述。
 
 {% top %}
