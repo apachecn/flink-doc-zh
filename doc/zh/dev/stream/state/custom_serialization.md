@@ -23,20 +23,15 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-If your application uses Flink's managed state, it might be necessary to implement custom serialization logic for special use cases.
+如果你的应用使用了Flink的托管状态，你可能需要实现自定义的序列化逻辑来来满足特殊用例。
+本页是专门为有自定义序列化需求的人编写的参考文档，它涵盖了如何为状态提供一个自定义序列化器，以及如何处理序列化器的兼容性升级。如果你知识简单地使用Flink自带的序列化器，那么你可以选择跳过此文。
 
-This page is targeted as a guideline for users who require the use of custom serialization for their state, covering how
-to provide a custom serializer and how to handle upgrades to the serializer for compatibility. If you're simply using
-Flink's own serializers, this page is irrelevant and can be skipped.
+### 使用自定义序列化器
 
-### Using custom serializers
+如同上面的例子演示的那样，当注册一个托管算子状态或键值状态时，你需要使用`StateDescriptor`来确定状态的名称和有关状态类型的信息。Flink的
+[类型信息框架](../../types_serialization.html)将会使用这些类型信息来为状态创建合适的序列化器。
 
-As demonstrated in the above examples, when registering a managed operator or keyed state, a `StateDescriptor` is required
-to specify the state's name, as well as information about the type of the state. The type information is used by Flink's
-[type serialization framework](../../types_serialization.html) to create appropriate serializers for the state.
-
-It is also possible to completely bypass this and let Flink use your own custom serializer to serialize managed states,
-simply by directly instantiating the `StateDescriptor` with your own `TypeSerializer` implementation:
+你也可以完全跳过这些步骤，让Flink使用你自己自定义的序列化器来序列化托管状态，只需简单的使用你自己的`TypeSerializer`实现来初始化`StateDescriptor`实例：
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -66,52 +61,29 @@ checkpointedState = getRuntimeContext.getListState(descriptor)
 </div>
 </div>
 
-Note that Flink writes state serializers along with the state as metadata. In certain cases on restore (see following
-subsections), the written serializer needs to be deserialized and used. Therefore, it is recommended to avoid using
-anonymous classes as your state serializers. Anonymous classes do not have a guarantee on the generated classname,
-which varies across compilers and depends on the order that they are instantiated within the enclosing class, which can 
-easily cause the previously written serializer to be unreadable (since the original class can no longer be found in the
-classpath).
+需要注意的是，Flink在写入状态序列化器时，也会将状态作为元数据一并写入。在某些恢复状态(参考后面部分中的信息)的情况中，写入的序列化器需要先被反序列化再使用。因此，我们建议你避免使用匿名类作为你的状态序列化器。匿名类生成的类名是不确定的，他可能在不同的编译器中发生改变，而且还取决于它在封闭类中实例化的顺序，这很容易导致以前写入的序列化器没法被读取(因为原始类无法再在classpath中找到)
 
-### Handling serializer upgrades and compatibility
+### 处理序列化器的升级与兼容性
 
-Flink allows changing the serializers used to read and write managed state, so that users are not locked in to any
-specific serialization. When state is restored, the new serializer registered for the state (i.e., the serializer
-that comes with the `StateDescriptor` used to access the state in the restored job) will be checked for compatibility,
-and is replaced as the new serializer for the state.
+Flink允许改变用于读取和写入托管状态的序列化器，所以用户不会被限制一直只能使用一个特定的序列化操作。当状态被恢复时，为这个状态注册的新序列化器(例如`StateDescriptor`产生的用于读取恢复的作业中的状态的序列器)会被进行兼容性方面的检查，并会为状态替换掉旧的序列化器。
 
-A compatible serializer would mean that the serializer is capable of reading previous serialized bytes of the state,
-and the written binary format of the state also remains identical. The means to check the new serializer's compatibility
-is provided through the following two methods of the `TypeSerializer` interface:
+一个具有兼容性的序列化器意味着它能够读取以前版本对状态序列化产生的字节，并且写入的二进制格式也应该保持一致。`TypeSerializer`接口提供了下面两个方法来检查新版本的序列化器的兼容性：
 
 {% highlight java %}
 public abstract TypeSerializerConfigSnapshot snapshotConfiguration();
 public abstract CompatibilityResult ensureCompatibility(TypeSerializerConfigSnapshot configSnapshot);
 {% endhighlight %}
 
-Briefly speaking, every time a checkpoint is performed, the `snapshotConfiguration` method is called to create a
-point-in-time view of the state serializer's configuration. The returned configuration snapshot is stored along with the
-checkpoint as the state's metadata. When the checkpoint is used to restore a job, that serializer configuration snapshot
-will be provided to the _new_ serializer of the same state via the counterpart method, `ensureCompatibility`, to verify
-compatibility of the new serializer. This method serves as a check for whether or not the new serializer is compatible,
-as well as a hook to possibly reconfigure the new serializer in the case that it is incompatible.
+简单来说，每次使用检查点时，`snapshotConfiguration`方法就会被调用，它会创建一个point-in-time状态序列化器配置的视图。返回的配置快照和检查点一起作为状态的元数据进行存储。当检查点被用于恢复作业时，那个序列化器配置快照就会通过对口方法`ensureCompatibility`被提供给相同状态的新的序列化器，这一列的操作都是为了确保新序列化器的兼容性。无论新的序列化器是否是兼容的，这个方法都会当作检查被执行，当出现不兼容的情况时，这个方法也会提供最新序列化器进行重新配置的可能。
 
-Note that Flink's own serializers are implemented such that they are at least compatible with themselves, i.e. when the
-same serializer is used for the state in the restored job, the serializer's will reconfigure themselves to be compatible
-with their previous configuration.
+需要注意的是，Flink自带的序列化器就是这样实现的，这保证了它们至少与他们本上是兼容的，例如当我们在恢复作业的状态上使用同样的序列化器，序列化器将会对自己进行重新配置以对以前版本的配置进行兼容。
 
-The following subsections illustrate guidelines to implement these two methods when using custom serializers.
+接下来的部分中举例说明了如何在使用自定义序列化器时实现这两个方法。
 
-#### Implementing the `snapshotConfiguration` method
+#### 实现 `snapshotConfiguration` 方法
+序列化器的配置快照应该捕捉足够的信息，这样在恢复状态时，为状态的新序列化器传递的信息才足够判定其是否是兼容的。它可能会包含一些关于序列化数据的序列化器参数或二进制格式的代表性信息；这些代表性信息通常是可以决定新的序列化器是否可用于读取以前版本的序列化字节以及是否以相同的二进制格式写入数据相关的任何信息。
 
-The serializer's configuration snapshot should capture enough information such that on restore, the information
-carried over to the new serializer for the state is sufficient for it to determine whether or not it is compatible.
-This could typically contain information about the serializer's parameters or binary format of the serialized data;
-generally, anything that allows the new serializer to decide whether or not it can be used to read previous serialized
-bytes, and that it writes in the same binary format.
-
-How the serializer's configuration snapshot is written to and read from checkpoints is fully customizable. The below
-is the base class for all serializer configuration snapshot implementations, the `TypeSerializerConfigSnapshot`.
+你可以对序列化的状态快照从检查点的写入和读取过程进行完全的自定义。所有的序列化器配置快照都要事先这个基础类：`TypeSerializerConfigSnapshot`。
 
 {% highlight java %}
 public abstract TypeSerializerConfigSnapshot extends VersionedIOReadableWritable {
@@ -121,70 +93,35 @@ public abstract TypeSerializerConfigSnapshot extends VersionedIOReadableWritable
 }
 {% endhighlight %}
 
-The `read` and `write` methods define how the configuration is read from and written to the checkpoint. The base
-implementations contain logic to read and write the version of the configuration snapshot, so it should be extended and
-not completely overridden.
+`read` 和 `write`方法定义了如何如何读取和写入到检查点中的。最基础的实现包含了读取和写入配置快照版本的逻辑，所以他应该被扩展而不是完全的重写
 
-The version of the configuration snapshot is determined through the `getVersion` method. Versioning for the serializer
-configuration snapshot is the means to maintain compatible configurations, as information included in the configuration
-may change over time. By default, configuration snapshots are only compatible with the current version (as returned by
-`getVersion`). To indicate that the configuration is compatible with other versions, override the `getCompatibleVersions`
-method to return more version values. When reading from the checkpoint, you can use the `getReadVersion` method to
-determine the version of the written configuration and adapt the read logic to the specific version.
+配置快照的版本可以通过`getVersion`方法获取。序列化器配置快照的版本控制是维护兼容性配置的手段，因为配置中的信息可能会随着时间而改变。默认情况下，配置快照只于当前版本(`getVersion`返回的版本)兼容，如果要明确指出这个配置可以兼容其他版本，你需要重写`getCompatibleVersions`来返回更多的兼容版本。当从检查点中读取时，你可以使用`getReadVersion`方法来指定特定的版本来读取和写入配置。
 
-<span class="label label-danger">Attention</span> The version of the serializer's configuration snapshot is **not**
-related to upgrading the serializer. The exact same serializer can have different implementations of its
-configuration snapshot, for example when more information is added to the configuration to allow more comprehensive
-compatibility checks in the future.
+<span class="label label-danger">注意</span> 序列化器的配置快照版本与升级序列化器**无关**。完全相同的序列化器可以有其配置快照的不同实现，例如当添加更多信息到配置中来允许未来更加便于理解的兼容性检查时。
 
-One limitation of implementing a `TypeSerializerConfigSnapshot` is that an empty constructor must be present. The empty
-constructor is required when reading the configuration snapshot from checkpoints.
+实现`TypeSerializerConfigSnapshot`的一个限制是必须提供一个无参构造函数。当从检查点中读取配置快照时会用到这个无参构造函数。
 
-#### Implementing the `ensureCompatibility` method
+#### 实现`ensureCompatibility`方法
 
-The `ensureCompatibility` method should contain logic that performs checks against the information about the previous
-serializer carried over via the provided `TypeSerializerConfigSnapshot`, basically doing one of the following:
+`ensureCompatibility`方法应该包含对`TypeSerializerConfigSnapshot`中的历史版本序列化器的信息进行兼容性检查的逻辑代码，该方法一般会完成下列事情之一：
 
-  * Check whether the serializer is compatible, while possibly reconfiguring itself (if required) so that it may be
-    compatible. Afterwards, acknowledge with Flink that the serializer is compatible.
+  * 当序列化器在必要的情况下对自身进行配置时检查序列化器是否是兼容的。如果兼容的话便通知Flink这个序列器是是兼容的。
+  * 当序列化器不兼容时，在Flink使用新的序列化器处理数据之前通知其序列化器是不兼容的，并且需要对状态进行迁移。
 
-  * Acknowledge that the serializer is incompatible and that state migration is required before Flink can proceed with
-    using the new serializer.
+我们可以把上诉两种情况翻译成代码，只需从`ensureCompatibility`返回下列两者之一即可：
 
-The above cases can be translated to code by returning one of the following from the `ensureCompatibility` method:
+  * **`CompatibilityResult.compatible()`**：这个会通知Flink新的序列化器是兼容的，或者已经被重新配置到可兼容了，Flink可以放心使用这个新序列化器来处理作业。
+  * **`CompatibilityResult.requiresMigration()`**：这个会通知Flink新的序列化器时不兼容的，或者无法被重新配置到可兼容，在这个新的序列化可是被使用之前需要对状态进行迁移。先要使用旧版本的序列化器将序列化的状态字节还原成对象，，然后再用新的序列化器进行序列化操作。
+  * **`CompatibilityResult.requiresMigration(TypeDeserializer deserializer)`**：这种通知和`CompatibilityResult.requiresMigration()`有着相同的语义，但是发生历史版本序列化器无法被找到或加载，导致无法完成对序列化数据进行反序列化迁移操作的情况时，它会提供一个`TypeDeserializer`当作替补方案。
 
-  * **`CompatibilityResult.compatible()`**: This acknowledges that the new serializer is compatible, or has been reconfigured to
-    be compatible, and Flink can proceed with the job with the serializer as is.
+<span class="label label-danger">注意</span>在当前的Flink版本(1.3)中，当兼容性检查的结果时需要对状态进行迁移，任务会因为状态迁移功能在当前版本(1.3)中还未加入导致其无法从检查点中恢复而直接失败。状态迁移功能将在后续版本中加入。
 
-  * **`CompatibilityResult.requiresMigration()`**: This acknowledges that the serializer is incompatible, or cannot be
-    reconfigured to be compatible, and requires a state migration before the new serializer can be used. State migration
-    is performed by using the previous serializer to read the restored state bytes to objects, and then serialized again
-    using the new serializer.
+### 在用户代码中管理`TypeSerializer` 和 `TypeSerializerConfigSnapshot` 类
 
-  * **`CompatibilityResult.requiresMigration(TypeDeserializer deserializer)`**: This acknowledgement has equivalent semantics
-    to `CompatibilityResult.requiresMigration()`, but in the case that the previous serializer cannot be found or loaded
-    to read the restored state bytes for the migration, a provided `TypeDeserializer` can be used as a fallback resort.
+因为`TypeSerializer` and `TypeSerializerConfigSnapshot`是和状态值一起作为checkpoints的一部分被写入的，所以在classpth的范围内，这些类的功能可能会影响恢复行为。
 
-<span class="label label-danger">Attention</span> Currently, as of Flink 1.3, if the result of the compatibility check
-acknowledges that state migration needs to be performed, the job simply fails to restore from the checkpoint as state
-migration is currently not available. The ability to migrate state will be introduced in future releases.
+`TypeSerializer`是使用Java对象序列化直接写入到检查点中的，当新的序列化器告知其不兼容并需要状态迁移时，便需要提供它来读取恢复的状态字节。因此，如果因为对状态的序列化器进行升级导致原始的序列化器类不再存在或被修改(这会导致`serialVersionUID`的改变)，恢复操作将无法进行。当使用`CompatibilityResult.requiresMigration(TypeDeserializer deserializer)`来通知需要进行状态迁移时，我们可以通过提供`TypeDeserializer`作为替补来满足此需求。
 
-### Managing `TypeSerializer` and `TypeSerializerConfigSnapshot` classes in user code
-
-Since `TypeSerializer`s and `TypeSerializerConfigSnapshot`s are written as part of checkpoints along with the state
-values, the availability of the classes within the classpath may affect restore behaviour.
-
-`TypeSerializer`s are directly written into checkpoints using Java Object Serialization. In the case that the new
-serializer acknowledges that it is incompatible and requires state migration, it will be required to be present to be
-able to read the restored state bytes. Therefore, if the original serializer class no longer exists or has been modified
-(resulting in a different `serialVersionUID`) as a result of a serializer upgrade for the state, the restore would
-not be able to proceed. The alternative to this requirement is to provide a fallback `TypeDeserializer` when
-acknowledging that state migration is required, using `CompatibilityResult.requiresMigration(TypeDeserializer deserializer)`.
-
-The class of `TypeSerializerConfigSnapshot`s in the restored checkpoint must exist in the classpath, as they are
-fundamental components to compatibility checks on upgraded serializers and would not be able to be restored if the class
-is not present. Since configuration snapshots are written to checkpoints using custom serialization, the implementation
-of the class is free to be changed, as long as compatibility of the configuration change is handled using the versioning
-mechanisms in `TypeSerializerConfigSnapshot`.
+恢复的检查点中的`TypeSerializerConfigSnapshot`类必须存在于classpath中，因为它们是对升级的序列化器进行安全检查的基本组件，当没有提供这些类就无法完成恢复。由于配置快照是使用自定义序列化操作被写入到检查点中的，所以可以随意改变类的实现，只要配置改变的兼容性已被版本控制机制 `TypeSerializerConfigSnapshot`处理。
 
 {% top %}

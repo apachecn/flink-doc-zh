@@ -67,24 +67,24 @@ Flink的检查点机制与流和状态的持久化存储交互，通常来说，
 {% highlight java %}
 StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-// start a checkpoint every 1000 ms
+// 每1000毫秒开启一个检查点
 env.enableCheckpointing(1000);
 
-// advanced options:
+// 高级选项：
 
-// set mode to exactly-once (this is the default)
+// 将模式设置为exactly-once (默认)
 env.getCheckpointConfig().setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE);
 
-// make sure 500 ms of progress happen between checkpoints
+// 保证检查点间有500ms的时间推进进度
 env.getCheckpointConfig().setMinPauseBetweenCheckpoints(500);
 
-// checkpoints have to complete within one minute, or are discarded
+// 检查点必须在一分钟内完成，否则会被取消
 env.getCheckpointConfig().setCheckpointTimeout(60000);
 
-// allow only one checkpoint to be in progress at the same time
+// 只允许同时进行一个检查点操作
 env.getCheckpointConfig().setMaxConcurrentCheckpoints(1);
 
-// enable externalized checkpoints which are retained after job cancellation
+// 开启外部化检查点，它在作业被取消后保存
 env.getCheckpointConfig().enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION);
 {% endhighlight %}
 </div>
@@ -92,21 +92,21 @@ env.getCheckpointConfig().enableExternalizedCheckpoints(ExternalizedCheckpointCl
 {% highlight scala %}
 val env = StreamExecutionEnvironment.getExecutionEnvironment()
 
-// start a checkpoint every 1000 ms
+// 每1000毫秒开启一个检查点
 env.enableCheckpointing(1000)
 
-// advanced options:
+// 高级选项：
 
-// set mode to exactly-once (this is the default)
+// 将模式设置为exactly-once (默认)
 env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
 
-// make sure 500 ms of progress happen between checkpoints
+// 保证检查点间有500ms的时间推进进度
 env.getCheckpointConfig.setMinPauseBetweenCheckpoints(500)
 
-// checkpoints have to complete within one minute, or are discarded
+// 检查点必须在一分钟内完成，否则会被取消
 env.getCheckpointConfig.setCheckpointTimeout(60000)
 
-// allow only one checkpoint to be in progress at the same time
+// 只允许同时进行一个检查点操作
 env.getCheckpointConfig.setMaxConcurrentCheckpoints(1)
 {% endhighlight %}
 </div>
@@ -127,37 +127,29 @@ env.getCheckpointConfig.setMaxConcurrentCheckpoints(1)
 - `state.checkpoints.dir`:  [外部化检查点]({{ site.baseurl }}/ops/state/checkpoints.html#externalized-checkpoints)存储元数据的目标目录。
 
 - `state.checkpoints.num-retained`: 需要保持的已完成的检查点实例的数量，若最新检查点出错，设置为1以上将允许恢复回滚到先前的检查点
-- The number of completed checkpoint instances to retain. Having more than one allows recovery fallback to an earlier checkpoints if the latest checkpoint is corrupt. (Default: 1)
 
 {% top %}
 
 
-## Selecting a State Backend
+## 选择一个状态后端
 
-Flink's [checkpointing mechanism]({{ site.baseurl }}/internals/stream_checkpointing.html) stores consistent snapshots
-of all the state in timers and stateful operators, including connectors, windows, and any [user-defined state](state.html).
-Where the checkpoints are stored (e.g., JobManager memory, file system, database) depends on the configured
-**State Backend**. 
-
-By default, state is kept in memory in the TaskManagers and checkpoints are stored in memory in the JobManager. For proper persistence of large state,
-Flink supports various approaches for storing and checkpointing state in other state backends. The choice of state backend can be configured via `StreamExecutionEnvironment.setStateBackend(…)`.
-
-See [state backends]({{ site.baseurl }}/ops/state/state_backends.html) for more details on the available state backends and options for job-wide and cluster-wide configuration.
+Flink的 [检查点机制]({{ site.baseurl }}/internals/stream_checkpointing.html)存储计时器和状态化operators所有状态一致的快照，包括连接器，窗口和任何[用户自定义状态](state.html)。检查点的存储位置(例如JobManager内存，文件系统，数据库)取决于配置的**状态后端**。
+默认情况下，状态存储在TaskManager的内存中，检查点存储在JobManager的内存中。为了对大型状态进行合适的持久化存储，Flink支持各种在其它状态后端中存储状态和检查点的方式，可以通过`StreamExecutionEnvironment.setStateBackend(…)`方法来配置选择的状态后端。
+参见 [状态后端]({{ site.baseurl }}/ops/state/state_backends.html) 寻找更多关于job-wide和cluster-wide配置的可用状态后端和相关选项的细节。
 
 
-## State Checkpoints in Iterative Jobs
+## 迭代作业中的状态检查点
+Flink目前职位非迭代式的作业提供处理保证。在迭代式作业中启用检查点会导致异常。如需在迭代作业中强制启用检查点，用户需要在启动检查点时舌一一个特殊标识：
+`env.enableCheckpointing(interval, force = true)`.
 
-Flink currently only provides processing guarantees for jobs without iterations. Enabling checkpointing on an iterative job causes an exception. In order to force checkpointing on an iterative program the user needs to set a special flag when enabling checkpointing: `env.enableCheckpointing(interval, force = true)`.
-
-Please note that records in flight in the loop edges (and the state changes associated with them) will be lost during failure.
+请注意在出现故障期间，循环迭代中的记录(以及相关的状态改变)将会丢失。
 
 {% top %}
 
 
-## Restart Strategies
+## 重启策略
 
-Flink supports different restart strategies which control how the jobs are restarted in case of a failure. For more 
-information, see [Restart Strategies]({{ site.baseurl }}/dev/restart_strategies.html).
+Flink支持不同的重启策略，它们将控制作业在失败时如何重启。更多详情请参阅 [重启策略]({{ site.baseurl }}/dev/restart_strategies.html)。
 
 {% top %}
 
