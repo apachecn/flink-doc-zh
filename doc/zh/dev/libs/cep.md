@@ -871,22 +871,20 @@ val relaxedNot: Pattern[Event, _] = start.notFollowedBy("not").where(...)
 </div>
 </div>
 
-Relaxed contiguity means that only the first succeeding matching event will be matched, while
-with non-deterministic relaxed contiguity, multiple matches will be emitted for the same beginning. As an example,
-a pattern `a b`, given the event sequence `"a", "c", "b1", "b2"`, will give the following results:
+宽松的邻近性意味着只有第一个以后的事件会被匹配，当使用非确定性的宽松邻近性时，在相同的开始将会发出多个匹配。
+例如，假设一个模式是 `a b`，给定的事件序列是 `"a", "c", "b1", "b2"` ，将会给出以下结果:
 
-1. Strict Contiguity between `a` and `b`: `{}` (no match), the `"c"` after `"a"` causes `"a"` to be discarded.
+1. Strict Contiguity（严格连续性）: `a` 和 `b`: `{}` (不匹配), `"c"` 在 `"a"` 之后造成了 `"a"` 被丢弃.
 
-2. Relaxed Contiguity between `a` and `b`: `{a b1}`, as relaxed continuity is viewed as "skip non-matching events
-till the next matching one".
+2. Relaxed Contiguity（宽松连续性）: `a` 和 `b`: `{a b1}`, 由于宽松连续性的原因，所以跳过了不匹配的事件，直到匹配为止.
 
-3. Non-Deterministic Relaxed Contiguity between `a` and `b`: `{a b1}`, `{a b2}`, as this is the most general form.
+3. Non-Deterministic Relaxed Contiguity（非确定性宽松连续性） 在 `a` 和 `b` 之间 : `{a b1}`, `{a b2}`, 因为这是最常见的形式.
 
-It's also possible to define a temporal constraint for the pattern to be valid.
-For example, you can define that a pattern should occur within 10 seconds via the `pattern.within()` method.
-Temporal patterns are supported for both [processing and event time]({{site.baseurl}}/dev/event_time.html).
+也可以为模式定义一个时态约束来使其有效。
+例如，您可以通过 `pattern.within()` 方法定义一个应该在 10 秒内的模式。
+Temporal patterns（时态模式）支持 [处理和事件时间]({{site.baseurl}}/dev/event_time.html) 。
 
-{% warn Attention %} A pattern sequence can only have one temporal constraint. If multiple such constraints are defined on different individual patterns, then the smallest is applied.
+{% warn Attention %} 一个模式序列只能有一个时态约束。如果在不同的单个模式上定义了这样的时态约束，那么就会应用最小的时态约束。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -902,10 +900,8 @@ next.within(Time.seconds(10))
 </div>
 </div>
 
-It's also possible to define a pattern sequence as the condition for `begin`, `followedBy`, `followedByAny` and
-`next`. The pattern sequence will be considered as the matching condition logically and a `GroupPattern` will be
-returned and it is possible to apply `oneOrMore()`, `times(#ofTimes)`, `times(#fromTimes, #toTimes)`, `optional()`,
-`consecutive()`, `allowCombinations()` to the `GroupPattern`.
+还可以将模式序列定义为 `begin`, `followedBy`, `followedByAny` 和 `next` 的条件.
+模式序列在逻辑上将被视为匹配条件，并且返回一个 `GroupPattern`，以及它可以应用 `oneOrMore()`, `times(#ofTimes)`, `times(#fromTimes, #toTimes)`, `optional()`, `consecutive()`, `allowCombinations()` 到 `GroupPattern` 上。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1219,18 +1215,20 @@ pattern.within(Time.seconds(10))
 
 </div>
 
-### After Match Skip Strategy
+### After Match Skip Strategy（匹配后的跳过策略）
 
-For a given pattern, the same event may be assigned to multiple successful matches. To control to how many matches an event will be assigned, you need to specify the skip strategy called `AfterMatchSkipStrategy`. There are four types of skip strategies, listed as follows:
+针对一个给定的模式，相同的事件可能本分配到多个成功的匹配中。
+为了控制一个事件将被分配到多少个匹配的情况，您需要通过调用 `AfterMatchSkipStrategy` 方法来指定跳过策略。
+一共有四种类型的跳过策略，如下所述:
 
-* <strong>*NO_SKIP*</strong>: Every possible match will be emitted.
-* <strong>*SKIP_PAST_LAST_EVENT*</strong>: Discards every partial match that contains event of the match.
-* <strong>*SKIP_TO_FIRST*</strong>: Discards every partial match that contains event of the match preceding the first of *PatternName*.
-* <strong>*SKIP_TO_LAST*</strong>: Discards every partial match that contains event of the match preceding the last of *PatternName*.
+* <strong>*NO_SKIP*</strong>: 每一种可能的事件都会被发出。
+* <strong>*SKIP_PAST_LAST_EVENT*</strong>: 丢弃每一个包含匹配事件的部分匹配。
+* <strong>*SKIP_TO_FIRST*</strong>: 丢弃包含在第一个 *PatternName* 之前的匹配事件的每一个的部分匹配。
+* <strong>*SKIP_TO_LAST*</strong>: 丢弃包含在最后个 *PatternName* 之前的匹配事件的每一个的部分匹配。.
 
-Notice that when using *SKIP_TO_FIRST* and *SKIP_TO_LAST* skip strategy, a valid *PatternName* should also be specified.
+请注意，当使用 SKIP_TO_FIRST* 和 *SKIP_TO_LAST* 跳过策略时，应该指定一个有效的 *PatternName* 。
 
-For example, for a given pattern `a b{2}` and a data stream `ab1, ab2, ab3, ab4, ab5, ab6`, the differences between these four skip strategies are as follows:
+例如，给定一个模式 `a b{2}` 和一个数据流 `ab1, ab2, ab3, ab4, ab5, ab6` ，这四种跳过策略之间的差异如下 : 
 
 <table class="table table-bordered">
     <tr>
@@ -1276,7 +1274,8 @@ For example, for a given pattern `a b{2}` and a data stream `ab1, ab2, ab3, ab4,
     </tr>
 </table>
 
-To specify which skip strategy to use, just create an `AfterMatchSkipStrategy` by calling:
+要指定使用的跳过策略，通过调用如何方法之后，创建一个 `AfterMatchSkipStrategy` 即可:
+
 <table class="table table-bordered">
     <tr>
         <th class="text-left" width="25%">Function</th>
@@ -1300,7 +1299,7 @@ To specify which skip strategy to use, just create an `AfterMatchSkipStrategy` b
     </tr>
 </table>
 
-Then apply the skip strategy to a pattern by calling:
+也可以通过调用如下方法，将跳过策略应用到一个模式中:
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1317,11 +1316,12 @@ Pattern.begin("patternName", skipStrategy)
 </div>
 </div>
 
-## Detecting Patterns
+## Detecting Patterns（检测模式）
 
-After specifying the pattern sequence you are looking for, it is time to apply it to your input stream to detect
-potential matches. To run a stream of events against your pattern sequence, you have to create a `PatternStream`.
-Given an input stream `input`, a pattern `pattern` and an optional comparator `comparator` used to sort events with the same timestamp in case of EventTime or that arrived at the same moment, you create the `PatternStream` by calling:
+指定要查找的模式序列后，是时候将其应用于输入流以检测潜在的匹配了。
+要根据您的模式序列运行事件流，您必须创建一个 `PatternStream`。
+给定一个输入流 `input`，一个模式 `pattern` 和一个可选的比较器 `comparator` 用于在 EventTime（事件时间）或同时到达的情况下用相同的 timestamp（时间戳）排序事件，
+您可以通过调用以下方法来创建 `PatternStream` :
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1345,13 +1345,13 @@ val patternStream: PatternStream[Event] = CEP.pattern(input, pattern, comparator
 </div>
 </div>
 
-The input stream can be *keyed* or *non-keyed* depending on your use-case.
+输入流可以根据您的情况是 *keyed* 或 *non-keyed* 。
 
-{% warn Attention %} Applying your pattern on a non-keyed stream will result in a job with parallelism equal to 1.
+{% warn Attention %} 在一个 non-keyed 的流上应用您的模式将导致 job 的并行度等于 1。
 
-### Selecting from Patterns
+### Selecting from Patterns（从模式中选择）
 
-Once you have obtained a `PatternStream` you can select from detected event sequences via the `select` or `flatSelect` methods.
+一旦您获得了一个 `PatternStream`，您就可以通过 `select` 或 `flatSelect` 方法从检测到的事件序列中进行选择。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1423,16 +1423,14 @@ def flatSelectFn(pattern : Map[String, Iterable[IN]], collector : Collector[OUT]
 </div>
 </div>
 
-### Handling Timed Out Partial Patterns
+### Handling Timed Out Partial Patterns（处理超时的部分模式）
 
-Whenever a pattern has a window length attached via the `within` keyword, it is possible that partial event sequences
-are discarded because they exceed the window length. To react to these timed out partial matches the `select`
-and `flatSelect` API calls allow you to specify a timeout handler. This timeout handler is called for each timed out
-partial event sequence. The timeout handler receives all the events that have been matched so far by the pattern, and
-the timestamp when the timeout was detected.
+无论何时一个模式通过 `within` 关键字附加窗口长度，部分事件序列可能因为超过窗口长度而被丢弃。
+为了对这些超时的部分匹配做出反应，可以使用 `select` 和 `flatSelect` API 调用来指定一个超时处理的程序。
+该超时处理程序针对每个超时的部分事件序列进行调用。
+超时处理程序接收模式中迄今为止已匹配的所有事件，以及检测到超时当时的时间戳。
 
-To treat partial patterns, the `select` and `flatSelect` API calls offer an overloaded version which takes as
-parameters
+为了处理部分模式，`select` 和 `flatSelect` API 调用提供了一个重载的版本并且附带了一个参数
 
  * `PatternTimeoutFunction`/`PatternFlatTimeoutFunction`
  * [OutputTag]({{ site.baseurl }}/dev/stream/side_output.html) for the side output in which the timed out matches will be returned
@@ -1503,21 +1501,23 @@ val timeoutResult: DataStream<TimeoutEvent> = result.getSideOutput(outputTag)
 </div>
 </div>
 
-## Handling Lateness in Event Time
+## Handling Lateness in Event Time（事件时间中处理延迟）
 
-In `CEP` the order in which elements are processed matters. To guarantee that elements are processed in the correct order when working in event time, an incoming element is initially put in a buffer where elements are *sorted in ascending order based on their timestamp*, and when a watermark arrives, all the elements in this buffer with timestamps smaller than that of the watermark are processed. This implies that elements between watermarks are processed in event-time order.
+在 `CEP` 中，处理元素的顺序非常重要。
+为了确保元素在事件时间内以正确的顺序处理，一个传入元素最初被放入一个缓冲区，其中元素根据其时间戳进行升序 *排序*，并且当 watermark（水位）到达时，该缓冲区的所有元素处理时间戳小于水位的时间戳。
+这意味着水位之间的元素按事件时间顺序来进行处理。
 
-{% warn Attention %} The library assumes correctness of the watermark when working in event time.
+{% warn Attention %} 该库假设了事件时间发生时水位的正确性。
 
-To guarantee that elements across watermarks are processed in event-time order, Flink's CEP library assumes
-*correctness of the watermark*, and considers as *late* elements whose timestamp is smaller than that of the last
-seen watermark. Late elements are not further processed.
+为了保证水位之间的元素是按事件时间的顺序来处理的，Flink 的 CEP 库假设了 *correctness of the watermark（水位的正确性）* ，并且认为 *late* 元素的时间小于最后所见的水位（and considers as *late* elements whose timestamp is smaller than that of the last
+seen watermark.）。
+Late elements（）不会被进一步处理。
 
-## Examples
+## Examples（示例）
 
-The following example detects the pattern `start, middle(name = "error") -> end(name = "critical")` on a keyed data
-stream of `Events`. The events are keyed by their `id`s and a valid pattern has to occur within 10 seconds.
-The whole processing is done with event time.
+以下示例在 `Events` 的 keyed data stream 上检测模式 `start, middle(name = "error") -> end(name = "critical")` 。
+这些事件是通过它们的 `id` 来关联的，并且该有效模式必须在 10 秒以内。
+整个处理过程都是在事件时间内完成的。
 
 <div class="codetabs" markdown="1">
 <div data-lang="java" markdown="1">
@@ -1579,24 +1579,22 @@ val alerts = patternStream.select(createAlert(_)))
 </div>
 </div>
 
-## Migrating from an older Flink version
+## Migrating from an older Flink version（从旧的 Flink 版本进行迁移）
 
-The CEP library in Flink-1.3 ships with a number of new features which have led to some changes in the API. Here we
-describe the changes that you need to make to your old CEP jobs, in order to be able to run them with Flink-1.3. After
-making these changes and recompiling your job, you will be able to resume its execution from a savepoint taken with the
-old version of your job, *i.e.* without having to re-process your past data.
+Flink-1.3 中的 CEP 库附带了许多新功能，这些功能导致 API 发生了一些变化。
+在这里，我们描述您需要对旧 CEP 作业进行的更改，以便能够使用 Flink-1.3 运行它们。
+在做出这些更改并重新编译工作之后，您将能够从旧版本作业的保存点恢复执行，即无需重新处理过去的数据。
 
-The changes required are:
+所需的更改是 :
 
-1. Change your conditions (the ones in the `where(...)` clause) to extend the `SimpleCondition` class instead of
-implementing the `FilterFunction` interface.
+1. 更改您的条件 (`where(...)` 子句中的那些) 来扩展 `SimpleCondition` 类，而不是实现 `FilterFunction` 接口.
 
 2. Change your functions provided as arguments to the `select(...)` and `flatSelect(...)` methods to expect a list of
 events associated with each pattern (`List` in `Java`, `Iterable` in `Scala`). This is because with the addition of
 the looping patterns, multiple input events can match a single (looping) pattern.
 
-3. The `followedBy()` in Flink 1.1 and 1.2 implied `non-deterministic relaxed contiguity` (see
-[here](#conditions-on-contiguity)). In Flink 1.3 this has changed and `followedBy()` implies `relaxed contiguity`,
-while `followedByAny()` should be used if `non-deterministic relaxed contiguity` is required.
+3. Flink 1.1 和 1.2 中的 `followedBy()` 意味着 `non-deterministic relaxed contiguity（非确定宽松连续性）` (请参阅
+[这里](#conditions-on-contiguity)). 在 Flink 1.3 中这个已经发生了变化，`followedBy()` 意味着 `relaxed contiguity（宽松连续性）,
+而如果需要 `non-deterministic relaxed contiguity（非确定宽松连续性）` 的话应该使用 `followedByAny()` 。
 
 {% top %}
