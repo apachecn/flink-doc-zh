@@ -22,21 +22,16 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-Java 8 introduces several new language features designed for faster and clearer coding. With the most important feature,
-the so-called "Lambda Expressions", Java 8 opens the door to functional programming. Lambda Expressions allow for implementing and
-passing functions in a straightforward way without having to declare additional (anonymous) classes.
+Java8新增了几种新的语言特性，旨在实现更快速、更清晰的编程实现。伴随着最重要特性就是常说的“Lambda表达式”的发布，Java8亦开启了函数式编程的大门。Lambda表达式允许以一种直截了当的方式实现和传递函数，而无需声明额外的（匿名）类。
 
-The newest version of Flink supports the usage of Lambda Expressions for all operators of the Java API.
-This document shows how to use Lambda Expressions and describes current limitations. For a general introduction to the
-Flink API, please refer to the [Programming Guide]({{ site.baseurl }}/dev/api_concepts.html)
+最新版本的Flink对Java API的所有操作都支持使用Lambda表达式。本文档展示了如何使用Lambda表达式和当前应用局限性的描述。有关于Flink API的整体介绍介绍，可以参考[Programming Guide]({{ site.baseurl }}/dev/api_concepts.html)。
 
 * TOC
 {:toc}
 
-### Examples
+### 例子
 
-The following example illustrates how to implement a simple, inline `map()` function that squares its input using a Lambda Expression.
-The types of input `i` and output parameters of the `map()` function need not to be declared as they are inferred by the Java 8 compiler.
+下面的示例阐述了如何实现一个简单的例子，使用一个Lambda表达式来符合内联`map()`函数的输入。输入函数`i`的类型 和`map()`函数的输出参数是不用去声明的，因为可由Java 8编译器来推断出。
 
 ~~~java
 env.fromElements(1, 2, 3)
@@ -45,10 +40,7 @@ env.fromElements(1, 2, 3)
 .print();
 ~~~
 
-The next two examples show different implementations of a function that uses a `Collector` for output.
-Functions, such as `flatMap()`, require an output type (in this case `String`) to be defined for the `Collector` in order to be type-safe.
-If the `Collector` type can not be inferred from the surrounding context, it needs to be declared in the Lambda Expression's parameter list manually.
-Otherwise the output will be treated as type `Object` which can lead to undesired behaviour.
+接下来的两个例子展示了一个函数的不同实现，它使用`收集器`来作为输出。一些函数，例如`flatMap()`,为了类型安全需要为`计数器`定义一个输出类型（这个例子中是 `String`）。如果`收集器`的类型无法从周围的上下文中推断出，那就需要手动地通过Lambda表达式的参数列表中去声明。否则输出会被视为将会导致一些非法的行为的对象类型。
 
 ~~~java
 DataSet<Integer> input = env.fromElements(1, 2, 3);
