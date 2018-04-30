@@ -22,27 +22,23 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-Flink comes with an integrated interactive Scala Shell.
-It can be used in a local setup as well as in a cluster setup.
+Flink带有一个集成的交互式Scala Shell。它可以用于本地设置以及集群设置。
 
-To use the shell with an integrated Flink cluster just execute:
+要使用带有集成Flink集群的shell，只需在Flink根目录下执行以下命令：
 
 ~~~bash
 bin/start-scala-shell.sh local
 ~~~
 
-in the root directory of your binary Flink directory. To run the Shell on a
-cluster, please see the Setup section below.
+要在群集上运行Shell，请参阅下面的“设置”部分。
 
-## Usage
+## 用法
 
-The shell supports Batch and Streaming.
-Two different ExecutionEnvironments are automatically prebound after startup.
-Use "benv" and "senv" to access the Batch and Streaming environment respectively.
+该shell支持批处理和流式处理。启动后，两个不同的运行环境会自动预先绑定。使用 “benv” 和 “senv” 分别访问批处理和流式处理环境。
 
 ### DataSet API
 
-The following example will execute the wordcount program in the Scala shell:
+以下示例将执行在Scala shell中执行wordcount程序：
 
 ~~~scala
 Scala-Flink> val text = benv.fromElements(
@@ -56,9 +52,9 @@ Scala-Flink> val counts = text
 Scala-Flink> counts.print()
 ~~~
 
-The print() command will automatically send the specified tasks to the JobManager for execution and will show the result of the computation in the terminal.
+print（）命令会自动将指定的任务发送给JobManager执行，并在终端中显示计算结果。
 
-It is possible to write results to a file. However, in this case you need to call `execute`, to run your program:
+可以将结果写入文件。但是，在这种情况下，您需要在运行程序时调用execute：
 
 ~~~scala
 Scala-Flink> benv.execute("MyProgram")
@@ -66,7 +62,7 @@ Scala-Flink> benv.execute("MyProgram")
 
 ### DataStream API
 
-Similar to the batch program above, we can execute a streaming program through the DataStream API:
+与上面的批处理程序类似，我们可以通过DataStream API执行流式处理程序：
 
 ~~~scala
 Scala-Flink> val textStreaming = senv.fromElements(
@@ -81,43 +77,40 @@ Scala-Flink> countsStreaming.print()
 Scala-Flink> senv.execute("Streaming Wordcount")
 ~~~
 
-Note, that in the Streaming case, the print operation does not trigger execution directly.
+请注意，在运行流处理程序时，打印操作不被直接触发。
 
-The Flink Shell comes with command history and auto-completion.
+Flink Shell带有命令历史记录和自动完成功能。
 
+## 添加外部依赖包
 
-## Adding external dependencies
+可以将外部类路径添加到Scala-shell。这些将在调用execute时自动与您的shell程序一起发送到Jobmanager。
 
-It is possible to add external classpaths to the Scala-shell. These will be sent to the Jobmanager automatically alongside your shell program, when calling execute.
-
-Use the parameter `-a <path/to/jar.jar>` or `--addclasspath <path/to/jar.jar>` to load additional classes.
+使用参数 `-a <path/to/jar.jar>` 或者 `--addclasspath <path/to/jar.jar>` 来加载其他类。
 
 ~~~bash
 bin/start-scala-shell.sh [local | remote <host> <port> | yarn] --addclasspath <path/to/jar.jar>
 ~~~
 
 
-## Setup
+## 开始
 
-To get an overview of what options the Scala Shell provides, please use
+要了解Scala Shell提供的参数，请使用
 
 ~~~bash
 bin/start-scala-shell.sh --help
 ~~~
 
-### Local
+### 本地模式
 
-To use the shell with an integrated Flink cluster just execute:
+要使用 Flink 集成的 Scala shell ，只需执行：
 
 ~~~bash
 bin/start-scala-shell.sh local
 ~~~
 
-
 ### Remote
 
-To use it with a running cluster start the scala shell with the keyword `remote`
-and supply the host and port of the JobManager with:
+要在运行的集群中使用它，请使用关键字 `remote` 启动scala shell，并提供JobManager的主机名和端口：
 
 ~~~bash
 bin/start-scala-shell.sh remote <hostname> <portnumber>
@@ -125,33 +118,28 @@ bin/start-scala-shell.sh remote <hostname> <portnumber>
 
 ### Yarn Scala Shell cluster
 
-The shell can deploy a Flink cluster to YARN, which is used exclusively by the
-shell. The number of YARN containers can be controlled by the parameter `-n <arg>`.
-The shell deploys a new Flink cluster on YARN and connects the
-cluster. You can also specify options for YARN cluster such as memory for
-JobManager, name of YARN application, etc.
+Flink 内置的 shell 可以将 Flink 部署到 YARN 集群，并且只可以通过 shell 来部署。YARN容器的数量可以通过参数`-n <arg>`来控制。
 
-For example, to start a Yarn cluster for the Scala Shell with two TaskManagers
-use the following:
+Flink 内置的 shell 在 YARN 上可以部署新的 Flink 集群并连接到该集群。您还可以为YARN群集指定参数，例如JobManager的内存，YARN应用程序的名称等。
+
+例如，要通过Scala Shell启动一个使用两个 TaskManagers 的 YARN 集群，请使用以下命令：
 
 ~~~bash
  bin/start-scala-shell.sh yarn -n 2
 ~~~
 
-For all other options, see the full reference at the bottom.
-
+对于所有其他选项，请参阅底部的完整参考。
 
 ### Yarn Session
 
-If you have previously deployed a Flink cluster using the Flink Yarn Session,
-the Scala shell can connect with it using the following command:
+如果以前使用Flink Yarn Session部署了Flink群集，则可以使用以下命令将Scala Shell与其连接：
 
 ~~~bash
  bin/start-scala-shell.sh yarn
 ~~~
 
 
-## Full Reference
+## 完整参考
 
 ~~~bash
 Flink Scala Shell
