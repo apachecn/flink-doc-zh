@@ -153,7 +153,7 @@
 
 ### 一、认领
 
-首先查看[整体进度](https://github.com/apachecn/flink-doc-zh/issues/1)，确认没有人认领了你想认领的章节。
+首先查看[整体进度](https://github.com/apachecn/flink-doc-zh/issues/13)，确认没有人认领了你想认领的章节。
  
 然后回复 ISSUE，注明“章节 + QQ 号”（一定要留 QQ）。
 
