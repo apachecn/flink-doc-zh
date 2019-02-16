@@ -17,6 +17,8 @@
 
 ### 负责人
 
++   [zyBourn](https://github.com/zyBourn)：379991171
+
 ### 其他
 
 *   认领翻译和项目进度-地址: <https://github.com/apachecn/flink-doc-zh/issues/1>
