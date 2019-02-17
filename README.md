@@ -1,6 +1,6 @@
 # Flink 1.7 中文文档
 
-![](docs/img/navbar-brand-logo.png)
+![](logo.png)
 
 > 原文：[Apache Flink 1.7 Documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.7/)
 > 
