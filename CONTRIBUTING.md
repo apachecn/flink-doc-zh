@@ -4,6 +4,10 @@
 
 负责人：[zyBourn](https://github.com/zyBourn)：379991171
 
+## 可能有用的链接
+
++   [Flink 1.7-SNAPSHOT 中文文档](http://flink.apachecn.org/docs/1.7-SNAPSHOT/#/)
+
 ## 章节列表
 
 + [Apache Flink Documentation](docs/1.7/1.md)

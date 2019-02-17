@@ -1,9 +1,7 @@
-# Flink 1.7 中文文档
+# Flink 中文文档
 
 ![](logo.png)
 
-> 原文：[Apache Flink 1.7 Documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.7/)
-> 
 > 协议：[CC BY-NC-SA 4.0](http://creativecommons.org/licenses/by-nc-sa/4.0/)
 > 
 > 欢迎任何人参与和完善：一个人可以走的很快，但是一群人却可以走的更远。
