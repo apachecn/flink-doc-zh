@@ -15,7 +15,7 @@
 
 ### 负责人
 
-+   [zyBourn](https://github.com/zyBourn)：379991171
++   [zyBourn](https://github.com/zyBourn)：噼里啪啦嘣 QQ：379991171；微信：zybourn
 
 ### 其他
 
