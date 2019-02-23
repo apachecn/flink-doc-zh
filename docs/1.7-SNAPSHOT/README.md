@@ -4,6 +4,12 @@
 
 > 译者：[flink.sojb.cn](https://flink.sojb.cn/)
 
++ [在线阅读](http://flink.apachecn.org/docs/1.7-SNAPSHOT/)
++ [PDF格式](https://www.gitbook.com/download/pdf/book/wizardforcel/flink-17s-doc)
++ [EPUB格式](https://www.gitbook.com/download/epub/book/wizardforcel/flink-17s-doc)
++ [MOBI格式](https://www.gitbook.com/download/mobi/book/wizardforcel/flink-17s-doc)
++ [代码仓库](https://github.com/apachecn/flink-doc-zh)
+
 本文档适用于Apache Flink 1.7-SNAPSHOT版。这些页面的建立时间为：09/08/18，中部标准时间07:53:00。
 
 Apache Flink是一个用于分布式流和批处理数据处理的开源平台。Flink的核心是流数据流引擎，为数据流上的分布式计算提供数据分发，通信和容错。Flink在流引擎之上构建批处理，覆盖本机迭代支持，托管内存和程序优化。
