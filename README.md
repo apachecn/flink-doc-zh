@@ -11,16 +11,6 @@
 * [ApacheCN 大数据交流群 152622464](http://shang.qq.com/wpa/qunwpa?idkey=30e5f1123a79867570f665aa3a483ca404b1c3f77737bc01ec520ed5f078ddef)
 * [ApacheCN 学习资源](http://www.apachecn.org/)
 
-## 提交方式
-
-1. 请fork [apachecn/flink-doc-zh](https://github.com/apachecn/flink-doc-zh)到你的仓库中
-
-2. 在`doc/1,7`目录中找到相应的文件进行翻译，可以借助谷歌翻译，但是请让句子更加通顺。
-
-3. push到你的方库中
-
-4. PR到 [apachecn/flink-doc-zh](https://github.com/apachecn/flink-doc-zh)中，联系负责人帮你审核。
-
 ## 联系方式
 
 ### 负责人
