@@ -26,4 +26,4 @@
 
 ## 赞助我们
 
-![](https://www.apachecn.org/img/about/donate.jpg)
+![](http://data.apachecn.org/img/about/donate.jpg)
