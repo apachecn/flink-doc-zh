@@ -169,6 +169,8 @@
 
 ### 三、提交
 
+**注意：请提交到`docs/1.7/`，不要改动`docs/1.7-SNAPSHOT/`。**
+
 +   `fork` Github 项目
 +   将译文放在`docs`文件夹下
 +   `push`
