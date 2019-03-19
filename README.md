@@ -1,9 +1,7 @@
-# Flink 1.7 中文文档
+# Flink 中文文档
 
-![](docs/img/navbar-brand-logo.png)
+![](logo.png)
 
-> 原文：[Apache Flink 1.7 Documentation](https://ci.apache.org/projects/flink/flink-docs-release-1.7/)
-> 
 > 协议：[CC BY-NC-SA 4.0](http://creativecommons.org/licenses/by-nc-sa/4.0/)
 > 
 > 欢迎任何人参与和完善：一个人可以走的很快，但是一群人却可以走的更远。
@@ -17,6 +15,8 @@
 
 ### 负责人
 
++   [zyBourn](https://github.com/zyBourn)：噼里啪啦嘣 QQ：379991171；微信：zybourn
+
 ### 其他
 
 *   认领翻译和项目进度-地址: <https://github.com/apachecn/flink-doc-zh/issues/1>
@@ -26,4 +26,4 @@
 
 ## 赞助我们
 
-![](https://www.apachecn.org/img/about/donate.jpg)
+![](http://data.apachecn.org/img/about/donate.jpg)
