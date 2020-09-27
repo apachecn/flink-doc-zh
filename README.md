@@ -24,6 +24,16 @@
 *   发邮件到 Email: `apachecn@163.com`.
 *   在我们的 [组织学习交流群](http://www.apachecn.org/organization/348.html) 中联系群主/管理员即可.
 
+## 下载
+
+### NPM
+
+```
+npm install -g flink-doc-zh
+flink-doc-zh <port>
+# 访问 http://localhost:{port} 查看文档
+```
+
 ## 赞助我们
 
 ![](http://data.apachecn.org/img/about/donate.jpg)
