@@ -1,4 +1,4 @@
-+ [Apache Flink文档](README.md)
++ [Apache Flink 1.7-SNAPSHOT 中文文档](README.md)
 + [概念](pt1.md)
     + [数据流编程模型](2.md)
     + [分布式运行时环境](3.md)
